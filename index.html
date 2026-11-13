@@ -33,10 +33,11 @@
 <dialog id="rules" aria-labelledby="rules-title">
   <h2 id="rules-title">Cách chơi Caro Rubik</h2>
   <p>Hai người chơi chung một khối Rubik 5×5. X đi trước, rồi X và O thay phiên nhau đặt quân.</p>
-  <h3>Mỗi lượt làm gì?</h3>
+  <h3>Mỗi lượt: xoay tùy chọn, đặt quân bắt buộc</h3>
   <ol>
-    <li><strong>Xoay một lớp nếu muốn.</strong> Kéo một ô theo hàng hoặc cột để xem trước cú xoay 90°. Có thể bấm <kbd>Esc</kbd> hoặc chọn <strong>Hủy xoay</strong> để quay lại.</li>
-    <li><strong>Bấm một ô trống để đặt quân.</strong> Cú xoay đang xem trước sẽ được áp dụng cùng nước đặt quân. Sau đó game tự chuyển lượt.</li>
+    <li><strong>Kéo trên một ô để chọn lớp.</strong> Khi giữ chuột hoặc ngón tay, lớp nghiêng theo hướng kéo. Thả gần điểm bắt đầu thì lớp quay về. Thả đủ xa thì lớp vào nấc 90° để bạn xem trước.</li>
+    <li><strong>Muốn kéo xoay lớp khác? Hủy cú xoay trước.</strong> Khi đang xem trước, game giữ lớp đã chọn nên kéo trên ô sẽ không bắt đầu cú xoay mới. Bấm <kbd>Esc</kbd> hoặc <strong>Hủy xoay</strong>, đợi lớp về chỗ rồi kéo lại.</li>
+    <li><strong>Bấm ô trống để đặt quân và kết thúc lượt.</strong> Nếu đang xem trước, game áp dụng cú xoay rồi đặt quân vào ô bạn chọn. Bạn cũng có thể đặt quân ngay, bỏ qua bước xoay.</li>
   </ol>
   <h3>Thắng khi nối được 5 quân</h3>
   <figure class="rules-example">
@@ -125,7 +126,7 @@
     <figcaption><strong>Ví dụ X thắng qua ba mặt.</strong> Hai quân ở mặt trên, một ở mặt trước và hai ở mặt phải. Khi trải phẳng ba mặt theo đường đi, cả năm nằm trên một đường chéo.</figcaption>
   </figure>
   <p>Nối ít nhất 5 quân cùng loại liền nhau. Hàng ngang hoặc dọc có thể qua một cạnh. Đường chéo có thể qua hai cạnh, miễn là từng bước qua cạnh và tránh đi đúng qua đỉnh khối.</p>
-  <p>Game xét thắng sau khi đặt quân. Nếu cả hai cùng có đường thắng hoặc bàn đầy mà chưa ai thắng, ván hòa.</p>
+  <p>Sau khi đặt quân, game kiểm tra cả X và O. Nếu chỉ một bên có đường thắng, bên đó thắng. Nếu cả hai cùng có đường thắng hoặc bàn đầy mà chưa ai thắng, ván hòa.</p>
   <details>
     <summary>Điều khiển khác</summary>
     <dl>
