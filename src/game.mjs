@@ -87,14 +87,14 @@ function glyph(player){
   return new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false});
 }
 const glyphs={X:glyph('X'),O:glyph('O')};
-const palette=[0x1953b6,0xe9510e,0x24a65a,0xc72836,0xf1f0ed,0xf5ca28];
+const tileColor=0x414650;
 const layerTint=new THREE.Color(0xb9d16b);
-const pieces=tiles.map(({p,n,u,v,face},i)=>{
+const pieces=tiles.map(({p,n,u,v})=>{
   const item=new THREE.Group();
   const normal=new THREE.Vector3(...n);
   item.position.set(...p);
   item.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(...u),new THREE.Vector3(...v),normal));
-  const tile=new THREE.Mesh(tileGeometry,new THREE.MeshBasicMaterial({color:palette[face]}));
+  const tile=new THREE.Mesh(tileGeometry,new THREE.MeshBasicMaterial({color:tileColor}));
 
   const mark=new THREE.Mesh(glyphGeometry.X,glyphs.X);
   mark.position.z=.05;
@@ -388,7 +388,7 @@ function frame(time){
     const selected=preview && inLayer(tiles[i],layers[preview.layer]);
     tile.material.color.set(won
       ? (markPlayer==='X'?0x536936:0x325c70)
-      : palette[tiles[i].face]);
+      : tileColor);
     if(selected) tile.material.color.lerp(layerTint,.13);
     mark.visible=Boolean(markPlayer);
     if(markPlayer) mark.material=glyphs[markPlayer];
