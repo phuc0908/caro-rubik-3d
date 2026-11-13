@@ -42,6 +42,8 @@ function glyph(player){
 }
 const glyphs={X:glyph('X'),O:glyph('O')};
 const palette=[0x344450,0x3b3953,0x334b43,0x493b47,0x435069,0x54483d];
+const hoverTint=new THREE.Color(0xffffff);
+const layerTint=new THREE.Color(0xb9d16b);
 const pieces=tiles.map(({p,n,u,v,face},i)=>{
   const item=new THREE.Group();
   const normal=new THREE.Vector3(...n);
@@ -139,7 +141,15 @@ $('layer').onchange=()=>{
 function chooseTurn(direction){
   if(outcome || used[player] || $('layer').value==='') return;
   const layer=Number($('layer').value);
-  preview=preview?.direction===direction?null:{layer,direction};
+  setPreview({layer,direction});
+  update();
+}
+function setPreview(choice){
+  // A reverse input cancels the pending quarter turn; repeats leave it in place.
+  preview=preview?.layer===choice.layer && preview.direction===-choice.direction
+    ? null
+    : choice;
+  $('layer').value=String(choice.layer);
   update();
 }
 $('ccw').onclick=()=>chooseTurn(1);
@@ -163,31 +173,27 @@ document.addEventListener('keydown',event=>{
   }
   const command=arrowKeys[event.key];
   if(!command || !pointer) return;
-  const index=settled()?pick(pointer):null;
-  if(!preview && index===null) return;
+  const [horizontal,forward]=command;
+  const active=preview?.keyboard && preview.horizontal===horizontal ? preview : null;
+  const index=active?null:pick(pointer,!settled());
+  if(!active && index===null) return;
   event.preventDefault();
   if(event.repeat) return;
-  const [horizontal,forward]=command;
-  // Keep the first targeted slice stable while comparing its two directions.
-  if(preview?.keyboard && preview.horizontal===horizontal){
-    preview.direction=forward===preview.forward?preview.initialDirection:-preview.initialDirection;
+  if(active){
+    setPreview({...active,direction:forward===active.forward?active.direction:-active.direction,forward});
   }else{
-    if(index===null) return;
-    const choice=hoveredTurn(tiles[index],horizontal,forward);
-    preview={...choice,keyboard:true,horizontal,forward,initialDirection:choice.direction};
+    setPreview({...hoveredTurn(tiles[index],horizontal,forward),keyboard:true,horizontal,forward});
   }
-  $('layer').value=String(preview.layer);
-  update();
 });
 
-function pick(event){
+function pick(event,original=false){
   const rect=stage.getBoundingClientRect();
   ray.setFromCamera(new THREE.Vector2(
     (event.clientX-rect.left)/rect.width*2-1,
     1-(event.clientY-rect.top)/rect.height*2
   ),camera);
   const hit=ray.intersectObjects(hitTargets,false)[0]?.object;
-  return hit?.userData.destination??null;
+  return (original?hit?.userData.origin:hit?.userData.destination)??null;
 }
 stage.addEventListener('pointerdown',event=>{
   if(drag || event.button!==0) return;
@@ -246,8 +252,12 @@ const fitCorners=[-2.55,2.55].flatMap(x=>[-2.55,2.55]
   .flatMap(y=>[-2.55,2.55].map(z=>new THREE.Vector3(x,y,z))));
 const viewDirection=new THREE.Vector3(),right=new THREE.Vector3(),up=new THREE.Vector3();
 const tangent=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
-function frame(){
-  const ease=matchMedia('(prefers-reduced-motion: reduce)').matches?1:.19;
+let lastFrameTime;
+function frame(time){
+  const delta=Math.min((time-(lastFrameTime??time))/1000,.05);
+  lastFrameTime=time;
+  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ease=reducedMotion?1:.19;
   eye.lerp(targetEye,ease);
   if(eye.lengthSq()<.01) eye.copy(targetEye);
   viewDirection.copy(eye).normalize();
@@ -264,10 +274,13 @@ function frame(){
   camera.updateMatrixWorld(true);
   hover=pointer&&!drag&&settled()?pick(pointer):null;
   const desiredLayer=preview?.layer??null;
-  if(desiredLayer!==renderedLayer && Math.abs(angle)<.015){renderedLayer=desiredLayer;angle=0;}
+  if(desiredLayer!==renderedLayer && angle===0) renderedLayer=desiredLayer;
   const desiredAngle=preview && desiredLayer===renderedLayer?preview.direction*Math.PI/2:0;
-  angle+=(desiredAngle-angle)*ease;
-  if(Math.abs(desiredAngle-angle)<.004) angle=desiredAngle;
+  const remaining=desiredAngle-angle;
+  const maxStep=delta*Math.PI*2.8;
+  angle=reducedMotion||Math.abs(remaining)<=maxStep
+    ? desiredAngle
+    : angle+Math.sign(remaining)*maxStep;
   if(renderedLayer!==null) rotation.setFromAxisAngle(axis.set(...faces[layers[renderedLayer].face][1]),angle);
   const destinations=preview?permutations[preview.layer][preview.direction]:tileIndices;
   const lines=outcome?.lines;
@@ -276,6 +289,7 @@ function frame(){
     if(renderedLayer!==null&&inLayer(tiles[i],layers[renderedLayer])){
       item.position.applyQuaternion(rotation);item.quaternion.premultiply(rotation);
     }
+    tile.userData.origin=i;
     tile.userData.destination=destinations[i];
     const markPlayer=board[i];
     const won=lines&&(lines.X.has(i)||lines.O.has(i));
@@ -283,7 +297,9 @@ function frame(){
     const selected=preview && inLayer(tiles[i],layers[preview.layer]);
     tile.material.color.set(won
       ? (markPlayer==='X'?0x536936:0x325c70)
-      : hovered?0x68798a:selected?0x515d38:palette[tiles[i].face]);
+      : palette[tiles[i].face]);
+    if(selected) tile.material.color.lerp(layerTint,.13);
+    if(hovered) tile.material.color.lerp(hoverTint,.045);
     mark.visible=Boolean(markPlayer);
     if(markPlayer) mark.material=glyphs[markPlayer];
   });
