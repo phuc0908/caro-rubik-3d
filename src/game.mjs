@@ -18,8 +18,36 @@ renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 stage.append(renderer.domElement);
 const cube=new THREE.Group();
 scene.add(cube);
-const body=new THREE.Mesh(new THREE.BoxGeometry(4.95,4.95,4.95),new THREE.MeshBasicMaterial({color:0x101010}));
-cube.add(body);
+const plasticMaterial=new THREE.MeshBasicMaterial({color:0x101010});
+const plasticGeometry=new THREE.BoxGeometry(.985,.985,.985);
+const cubiePositions=[];
+for(let x=-2;x<=2;x++) for(let y=-2;y<=2;y++) for(let z=-2;z<=2;z++){
+  if(Math.max(Math.abs(x),Math.abs(y),Math.abs(z))===2){
+    cubiePositions.push(new THREE.Vector3(x,y,z));
+  }
+}
+const plastic=new THREE.InstancedMesh(plasticGeometry,plasticMaterial,cubiePositions.length);
+plastic.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+plastic.frustumCulled=false;
+cube.add(plastic);
+const cubieTransform=new THREE.Object3D();
+let previousPlasticLayer,previousPlasticAngle;
+function updatePlastic(layer,angle,rotation){
+  if(previousPlasticLayer===layer && previousPlasticAngle===angle) return;
+  previousPlasticLayer=layer;
+  previousPlasticAngle=angle;
+  cubiePositions.forEach((position,i)=>{
+    cubieTransform.position.copy(position);
+    cubieTransform.quaternion.identity();
+    if(layer && position.dot(axis)===layer.depth){
+      cubieTransform.position.applyQuaternion(rotation);
+      cubieTransform.quaternion.copy(rotation);
+    }
+    cubieTransform.updateMatrix();
+    plastic.setMatrixAt(i,cubieTransform.matrix);
+  });
+  plastic.instanceMatrix.needsUpdate=true;
+}
 function roundedSquare(halfSize,radius){
   const center=halfSize-radius;
   return [[center,center],[-center,center],[-center,-center],[center,-center]]
@@ -324,7 +352,6 @@ function frame(time){
   camera.position.copy(viewDirection).multiplyScalar(cameraDistance);
   camera.lookAt(0,0,0);
   camera.updateMatrixWorld(true);
-  hover=pointer&&!drag&&settled()?pick(pointer):null;
   const desiredLayer=preview?.layer??null;
   if(desiredLayer!==renderedLayer && angle===0) renderedLayer=desiredLayer;
   const desiredAngle=preview && desiredLayer===renderedLayer
@@ -333,9 +360,11 @@ function frame(time){
   angle+=(desiredAngle-angle)*(reducedMotion?1:1-Math.exp(-delta*24));
   if(Math.abs(desiredAngle-angle)<.005) angle=desiredAngle;
   if(renderedLayer!==null) rotation.setFromAxisAngle(axis.set(...faces[layers[renderedLayer].face][1]),angle);
+  updatePlastic(renderedLayer===null?null:layers[renderedLayer],angle,rotation);
   const destinations=preview?permutations[preview.layer][preview.direction]:tileIndices;
   const lines=outcome?.lines;
   hoverBorder.removeFromParent();
+  let hoveredItem;
   pieces.forEach(({item,tile,mark,position,orientation},i)=>{
     item.position.copy(position);item.quaternion.copy(orientation);
     if(renderedLayer!==null&&inLayer(tiles[i],layers[renderedLayer])){
@@ -345,16 +374,21 @@ function frame(time){
     tile.userData.destination=destinations[i];
     const markPlayer=board[i];
     const won=lines&&(lines.X.has(i)||lines.O.has(i));
-    const hovered=hover===destinations[i] && !outcome && !markPlayer;
     const selected=preview && inLayer(tiles[i],layers[preview.layer]);
     tile.material.color.set(won
       ? (markPlayer==='X'?0x536936:0x325c70)
       : palette[tiles[i].face]);
     if(selected) tile.material.color.lerp(layerTint,.13);
-    if(hovered) item.add(hoverBorder);
     mark.visible=Boolean(markPlayer);
     if(markPlayer) mark.material=glyphs[markPlayer];
   });
+  scene.updateMatrixWorld();
+  hover=pointer&&!drag&&settled()?pick(pointer):null;
+  if(hover!==null && !outcome){
+    const origin=destinations.indexOf(hover);
+    if(!board[origin]) hoveredItem=pieces[origin]?.item;
+  }
+  hoveredItem?.add(hoverBorder);
   renderer.render(scene,camera);
 }
 renderer.setAnimationLoop(frame);
@@ -394,10 +428,43 @@ function canvasRenderer(){
       ctx.clearRect(0,0,width,height);
       scene.updateMatrixWorld(true);
       camera.updateMatrixWorld(true);
-      const visible=pieces.filter(({item})=>new THREE.Vector3(0,0,1)
-        .applyQuaternion(item.quaternion).dot(camera.position.clone().sub(item.position))>0);
-      visible.sort((a,b)=>camera.position.distanceToSquared(b.item.position)-camera.position.distanceToSquared(a.item.position));
-      for(const {item,tile,mark} of visible){
+      const surfaces=[];
+      const transform=new THREE.Matrix4();
+      const normal=new THREE.Vector3();
+      const center=new THREE.Vector3();
+      const eyeOffset=new THREE.Vector3();
+      const plasticFaces=[-1,1].flatMap(sign=>[0,1,2].map(index=>
+        new THREE.Vector3().setComponent(index,sign)
+      ));
+      const half=.4925;
+      const facePoints=[[-half,-half],[half,-half],[half,half],[-half,half]];
+      for(let i=0;i<cubiePositions.length;i++){
+        plastic.getMatrixAt(i,transform);
+        for(const face of plasticFaces){
+          center.copy(face).multiplyScalar(half).applyMatrix4(transform);
+          normal.copy(face).transformDirection(transform);
+          if(normal.dot(eyeOffset.copy(camera.position).sub(center))<=0) continue;
+          const horizontal=new THREE.Vector3().setComponent(face.x?1:0,1);
+          const vertical=new THREE.Vector3().crossVectors(face,horizontal);
+          const points=facePoints.map(([x,y])=>project(face.clone().multiplyScalar(half)
+            .addScaledVector(horizontal,x).addScaledVector(vertical,y).applyMatrix4(transform)));
+          surfaces.push({depth:viewDirection.dot(center),points});
+        }
+      }
+      for(const piece of pieces){
+        const {item}=piece;
+        normal.set(0,0,1).applyQuaternion(item.quaternion);
+        if(normal.dot(eyeOffset.copy(camera.position).sub(item.position))>0){
+          surfaces.push({depth:viewDirection.dot(item.position),piece});
+        }
+      }
+      surfaces.sort((a,b)=>a.depth-b.depth);
+      for(const {points,piece} of surfaces){
+        if(!piece){
+          path(points);ctx.closePath();ctx.fillStyle='#101010';ctx.fill();
+          continue;
+        }
+        const {item,tile,mark}=piece;
         path(corners(item,backingCorners));ctx.closePath();
         ctx.fillStyle='#111111';ctx.fill();
         path(corners(item,stickerCorners));ctx.closePath();
