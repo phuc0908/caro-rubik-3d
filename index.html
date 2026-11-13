@@ -10,21 +10,21 @@
 <header><div class="brand"><span class="logo">⬡</span> CARO<span class="accent">RUBIK</span></div><button id="help">Cách chơi</button></header>
 <main>
 <div class="layout">
+<aside class="match-panel" aria-label="Người chơi">
+<div class="players">
+<div class="player x" id="playerX"><b>×</b><div><strong>Người chơi X</strong><small id="stockX"></small></div></div>
+<div class="player o" id="playerO"><b>○</b><div><strong>Người chơi O</strong><small id="stockO"></small></div></div>
+</div>
+<button id="reset">↻ Ván mới</button>
+</aside>
 <section class="arena" aria-label="Bàn Caro 3D">
 <div class="arena-top"><span id="arenaStatus" aria-hidden="true"></span><button id="home" aria-label="Đặt lại góc nhìn">↺ Góc ban đầu</button></div>
 <div id="stage" tabindex="0" aria-label="Khối Rubik. Rê chuột lên ô và dùng phím WASD hoặc mũi tên để xoay lớp."></div>
 <div class="arena-bottom"><div id="views" aria-label="Chọn mặt để quan sát"></div><span>Kéo để đổi góc nhìn · Bấm ô để đặt quân <span class="desktopKeys">· Rê chuột + phím WASD hoặc mũi tên để xoay lớp</span></span></div>
 </section>
-<aside>
-<div class="players">
-<div class="player x" id="playerX"><b>×</b><div><strong>Người chơi X</strong><small id="stockX"></small></div></div>
-<div class="player o" id="playerO"><b>○</b><div><strong>Người chơi O</strong><small id="stockO"></small></div></div>
-</div>
-<section class="controls">
+<aside class="controls" aria-label="Điều khiển lượt chơi">
 <div id="step"></div><h2 id="status" aria-live="polite"></h2><p id="hint"></p>
-<div id="twist"><p class="shortcut">Rê chuột lên ô rồi dùng <kbd>A</kbd>/<kbd>D</kbd> hoặc <kbd>←</kbd>/<kbd>→</kbd> để xoay hàng, <kbd>W</kbd>/<kbd>S</kbd> hoặc <kbd>↑</kbd>/<kbd>↓</kbd> để xoay cột. <kbd>Esc</kbd> để hủy.</p><label for="layer">Lớp Rubik muốn xoay</label><select id="layer"><option value="">Không vặn lớp</option></select><div class="directions"><button id="ccw" aria-label="Xem trước ngược chiều kim đồng hồ">↶ 90°</button><button id="cw" aria-label="Xem trước theo chiều kim đồng hồ">↷ 90°</button></div><p id="previewNote" aria-live="polite"></p><button id="cancelTwist" class="plain" hidden>Hủy xoay</button></div>
-</section>
-<button id="reset">↻ Ván mới</button>
+<div id="twist"><p class="shortcut">Rê chuột lên ô rồi dùng <kbd>A</kbd>/<kbd>D</kbd> hoặc <kbd>←</kbd>/<kbd>→</kbd> để xoay hàng, <kbd>W</kbd>/<kbd>S</kbd> hoặc <kbd>↑</kbd>/<kbd>↓</kbd> để xoay cột. <kbd>Esc</kbd> để hủy.</p><label for="layer">Xoay thủ công</label><select id="layer"><option value="">Chọn lớp</option></select><div class="directions"><button id="ccw" aria-label="Xem trước ngược chiều kim đồng hồ">↶ 90°</button><button id="cw" aria-label="Xem trước theo chiều kim đồng hồ">↷ 90°</button></div><p id="previewNote" aria-live="polite"></p><button id="cancelTwist" class="plain" hidden>Hủy xoay</button></div>
 </aside>
 </div>
 </main>
