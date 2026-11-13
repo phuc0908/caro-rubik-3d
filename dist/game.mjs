@@ -1,0 +1,348 @@
+import * as THREE from './three.module.min.js';
+import {faces,tiles,layers,inLayer,hoveredTurn,turn,winners} from './rules.mjs';
+
+const $=id=>document.getElementById(id);
+const stage=$('stage');
+const defaultView=new THREE.Vector3(8,6,10).normalize();
+const eye=defaultView.clone(), targetEye=eye.clone();
+const camera=new THREE.PerspectiveCamera(35,1,.1,80);
+const scene=new THREE.Scene();
+let renderer;
+try {
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+} catch {
+  renderer=canvasRenderer();
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+stage.append(renderer.domElement);
+const cube=new THREE.Group();
+scene.add(cube);
+const body=new THREE.Mesh(new THREE.BoxGeometry(4.95,4.95,4.95),new THREE.MeshBasicMaterial({color:0x14161d}));
+cube.add(body);
+const tileGeometry=new THREE.BoxGeometry(.91,.91,.07);
+const glyphGeometry={
+  X:new THREE.PlaneGeometry(.72,.72),
+  O:new THREE.PlaneGeometry(.72,.72)
+};
+const colors={X:'#dafa76',O:'#82dbf3'};
+function glyph(player){
+  const canvas=document.createElement('canvas');
+  canvas.width=canvas.height=128;
+  const ctx=canvas.getContext('2d');
+  ctx.strokeStyle=colors[player];ctx.lineWidth=13;ctx.lineCap='round';
+  ctx.beginPath();
+  if(player==='X'){
+    ctx.moveTo(34,34);ctx.lineTo(94,94);ctx.moveTo(94,34);ctx.lineTo(34,94);
+  }else ctx.arc(64,64,36,0,Math.PI*2);
+  ctx.stroke();
+  const texture=new THREE.CanvasTexture(canvas);
+  texture.colorSpace=THREE.SRGBColorSpace;
+  return new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false});
+}
+const glyphs={X:glyph('X'),O:glyph('O')};
+const palette=[0x344450,0x3b3953,0x334b43,0x493b47,0x435069,0x54483d];
+const pieces=tiles.map(({p,n,u,v,face},i)=>{
+  const item=new THREE.Group();
+  const normal=new THREE.Vector3(...n);
+  item.position.set(...p);
+  item.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(...u),new THREE.Vector3(...v),normal));
+  const tile=new THREE.Mesh(tileGeometry,new THREE.MeshBasicMaterial({color:palette[face]}));
+
+  const mark=new THREE.Mesh(glyphGeometry.X,glyphs.X);
+  mark.position.z=.05;
+  item.add(tile,mark);
+  cube.add(item);
+  return {item,tile,mark,position:item.position.clone(),orientation:item.quaternion.clone()};
+});
+const hitTargets=pieces.map(({tile})=>tile);
+const ray=new THREE.Raycaster();
+const axis=new THREE.Vector3();
+let board,player,used,preview,outcome,ply,hover,pointer,drag,angle=0,renderedLayer=null;
+function reset(){
+  board=Array(150).fill(null);player='X';used={X:false,O:false};
+  preview=null;outcome=null;ply=1;hover=null;
+  targetEye.copy(defaultView);
+  $('layer').value='';
+  update();
+}
+
+function resultFor(current) {
+  const lines=winners(current);
+  if(lines.X.size && lines.O.size) return {title:'Hòa · Hai đường thắng',lines};
+  if(lines.X.size || lines.O.size) return {title:(lines.X.size?'X':'O')+' thắng!',lines};
+  if(current.every(Boolean)) return {title:'Hòa · Bàn đã đầy',lines};
+  return null;
+}
+function update(){
+  $('step').textContent='LƯỢT '+String(ply).padStart(2,'0');
+  $('status').textContent=outcome?.title??'Lượt của '+player;
+  $('arenaStatus').textContent=outcome?.title??(preview?'Đang xem trước cú xoay · Esc để hủy':'Lượt '+player+' · '+(used[player]?'Đã dùng quyền xoay':'Còn 1 lần xoay'));
+  $('hint').textContent=outcome?'Bắt đầu ván mới để chơi lại.':preview
+    ? 'Chọn ô trống trên khối đã xoay để dùng quyền xoay và kết thúc lượt.'
+    : 'Chọn ô trống để đặt quân và kết thúc lượt.';
+  $('twist').hidden=Boolean(outcome)||used[player];
+  $('ccw').disabled=$('cw').disabled=$('layer').value==='';
+  $('ccw').setAttribute('aria-pressed',preview?.direction===1);
+  $('cw').setAttribute('aria-pressed',preview?.direction===-1);
+  $('cancelTwist').hidden=$('layer').value==='';
+  $('previewNote').textContent=preview
+    ? 'Đang xem trước · '+layers[preview.layer].name
+    :'';
+  for(const side of ['X','O']){
+    $('stock'+side).textContent=used[side]?'Đã dùng lần vặn':'Còn 1 lần vặn';
+    $('player'+side).classList.toggle('active',!outcome&&side===player);
+  }
+}
+function clearPreview(){
+  preview=null;$('layer').value='';
+}
+function place(index){
+  if(outcome) return;
+  const next=preview?turn(board,layers[preview.layer],preview.direction):board.slice();
+  if(next[index]) return;
+  next[index]=player;
+  board=next;
+  if(preview) used[player]=true;
+  angle=0;renderedLayer=null;hover=null;
+  clearPreview();
+  outcome=resultFor(board);
+  if(outcome){
+    const winning=[...outcome.lines.X,...outcome.lines.O];
+    if(winning.length){
+      const sum=new THREE.Vector3();
+      for(const i of winning) sum.add(new THREE.Vector3(...tiles[i].n));
+      if(sum.lengthSq()) targetEye.copy(sum.normalize());
+    }
+  }else{
+    player=player==='X'?'O':'X';ply++;
+  }
+  update();
+}
+
+function showFace(face){
+  const [,n,u,v]=faces[face];
+  targetEye.set(...n).addScaledVector(new THREE.Vector3(...u),.19)
+    .addScaledVector(new THREE.Vector3(...v),.14).normalize();
+}
+faces.forEach(([name],face)=>{
+  const button=document.createElement('button');button.textContent=name;
+  button.addEventListener('click',()=>showFace(face));$('views').append(button);
+
+});
+layers.forEach(({name},i)=>$('layer').append(new Option(name,String(i))));
+$('layer').onchange=()=>{
+  preview=null;
+  if($('layer').value!=='') showFace(layers[Number($('layer').value)].face);
+  update();
+};
+function chooseTurn(direction){
+  if(outcome || used[player] || $('layer').value==='') return;
+  const layer=Number($('layer').value);
+  preview=preview?.direction===direction?null:{layer,direction};
+  update();
+}
+$('ccw').onclick=()=>chooseTurn(1);
+$('cw').onclick=()=>chooseTurn(-1);
+$('cancelTwist').onclick=()=>{clearPreview();update();};
+$('home').onclick=()=>targetEye.copy(defaultView);
+$('help').onclick=()=>$('rules').showModal();
+$('reset').onclick=()=>{if(ply===1&&!outcome) reset();else $('restart').showModal();};
+$('restart').addEventListener('close',()=>{if($('restart').returnValue==='reset') reset();});
+
+const arrowKeys={
+  ArrowLeft:[true,false],ArrowRight:[true,true],
+  ArrowUp:[false,false],ArrowDown:[false,true]
+};
+document.addEventListener('keydown',event=>{
+  if(outcome || used[player] || drag || event.altKey || event.ctrlKey || event.metaKey
+    || document.querySelector('dialog[open]') || event.target.closest?.('button, select, input, textarea')) return;
+  if(event.key==='Escape' && preview){
+    clearPreview();update();
+    return;
+  }
+  const command=arrowKeys[event.key];
+  if(!command || !pointer) return;
+  const index=settled()?pick(pointer):null;
+  if(!preview && index===null) return;
+  event.preventDefault();
+  if(event.repeat) return;
+  const [horizontal,forward]=command;
+  // Keep the first targeted slice stable while comparing its two directions.
+  if(preview?.keyboard && preview.horizontal===horizontal){
+    preview.direction=forward===preview.forward?preview.initialDirection:-preview.initialDirection;
+  }else{
+    if(index===null) return;
+    const choice=hoveredTurn(tiles[index],horizontal,forward);
+    preview={...choice,keyboard:true,horizontal,forward,initialDirection:choice.direction};
+  }
+  $('layer').value=String(preview.layer);
+  update();
+});
+
+function pick(event){
+  const rect=stage.getBoundingClientRect();
+  ray.setFromCamera(new THREE.Vector2(
+    (event.clientX-rect.left)/rect.width*2-1,
+    1-(event.clientY-rect.top)/rect.height*2
+  ),camera);
+  const hit=ray.intersectObjects(hitTargets,false)[0]?.object;
+  return hit?.userData.destination??null;
+}
+stage.addEventListener('pointerdown',event=>{
+  if(drag || event.button!==0) return;
+  stage.focus({preventScroll:true});
+  if(event.pointerType!=='touch') pointer={clientX:event.clientX,clientY:event.clientY};
+  stage.setPointerCapture(event.pointerId);
+  drag={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false,
+    startX:event.clientX,startY:event.clientY};
+});
+stage.addEventListener('pointermove',event=>{
+  if(event.pointerType==='mouse' || event.pointerType==='pen') pointer={clientX:event.clientX,clientY:event.clientY};
+  if(!drag) return;
+  if(drag.id!==event.pointerId) return;
+  if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>5) drag.moved=true;
+  if(drag.moved){
+    const orbit=new THREE.Spherical().setFromVector3(targetEye);
+    orbit.theta-=(event.clientX-drag.x)*.009;
+    orbit.phi=THREE.MathUtils.clamp(orbit.phi-(event.clientY-drag.y)*.009,.045,Math.PI-.045);
+    targetEye.setFromSpherical(orbit);
+    drag.x=event.clientX;drag.y=event.clientY;hover=null;
+  }
+});
+stage.addEventListener('pointerup',event=>{
+  if(drag?.id!==event.pointerId) return;
+  if(!drag.moved && !outcome && settled()){
+    const index=pick(event);
+    if(index!==null) place(index);
+  }
+  drag=null;
+});
+stage.addEventListener('pointercancel',()=>{drag=null;hover=null;});
+stage.addEventListener('pointerleave',()=>{pointer=null;hover=null;});
+
+function resize(){
+  const {clientWidth:w,clientHeight:h}=stage;
+  if(!w||!h) return;
+  camera.aspect=w/h;camera.updateProjectionMatrix();
+  renderer.setSize(w,h,false);
+}
+new ResizeObserver(resize).observe(stage);
+reset();resize();
+const rotation=new THREE.Quaternion();
+function settled(){
+  return preview
+    ? renderedLayer===preview.layer && angle===preview.direction*Math.PI/2
+    : angle===0;
+}
+const tileIndices=tiles.map((_,i)=>i);
+const permutations=layers.map(layer=>Object.fromEntries([-1,1].map(direction=>{
+  const origins=turn(tileIndices,layer,direction);
+  const destinations=[];
+  origins.forEach((origin,destination)=>destinations[origin]=destination);
+  return [direction,destinations];
+})));
+const fitCorners=[-2.55,2.55].flatMap(x=>[-2.55,2.55]
+  .flatMap(y=>[-2.55,2.55].map(z=>new THREE.Vector3(x,y,z))));
+const viewDirection=new THREE.Vector3(),right=new THREE.Vector3(),up=new THREE.Vector3();
+const tangent=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+function frame(){
+  const ease=matchMedia('(prefers-reduced-motion: reduce)').matches?1:.19;
+  eye.lerp(targetEye,ease);
+  if(eye.lengthSq()<.01) eye.copy(targetEye);
+  viewDirection.copy(eye).normalize();
+  right.crossVectors(camera.up,viewDirection).normalize();
+  up.crossVectors(viewDirection,right);
+  let distance=0;
+  for(const point of fitCorners){
+    const extent=Math.max(Math.abs(point.dot(right))/camera.aspect,Math.abs(point.dot(up)));
+    distance=Math.max(distance,point.dot(viewDirection)+extent/(tangent*.91));
+  }
+  if(preview || renderedLayer!==null) distance+=Math.abs(Math.sin(angle*2))*1.7;
+  camera.position.copy(viewDirection).multiplyScalar(distance);
+  camera.lookAt(0,0,0);
+  camera.updateMatrixWorld(true);
+  hover=pointer&&!drag&&settled()?pick(pointer):null;
+  const desiredLayer=preview?.layer??null;
+  if(desiredLayer!==renderedLayer && Math.abs(angle)<.015){renderedLayer=desiredLayer;angle=0;}
+  const desiredAngle=preview && desiredLayer===renderedLayer?preview.direction*Math.PI/2:0;
+  angle+=(desiredAngle-angle)*ease;
+  if(Math.abs(desiredAngle-angle)<.004) angle=desiredAngle;
+  if(renderedLayer!==null) rotation.setFromAxisAngle(axis.set(...faces[layers[renderedLayer].face][1]),angle);
+  const destinations=preview?permutations[preview.layer][preview.direction]:tileIndices;
+  const lines=outcome?.lines;
+  pieces.forEach(({item,tile,mark,position,orientation},i)=>{
+    item.position.copy(position);item.quaternion.copy(orientation);
+    if(renderedLayer!==null&&inLayer(tiles[i],layers[renderedLayer])){
+      item.position.applyQuaternion(rotation);item.quaternion.premultiply(rotation);
+    }
+    tile.userData.destination=destinations[i];
+    const markPlayer=board[i];
+    const won=lines&&(lines.X.has(i)||lines.O.has(i));
+    const hovered=hover===destinations[i] && !outcome && !markPlayer;
+    const selected=preview && inLayer(tiles[i],layers[preview.layer]);
+    tile.material.color.set(won
+      ? (markPlayer==='X'?0x536936:0x325c70)
+      : hovered?0x68798a:selected?0x515d38:palette[tiles[i].face]);
+    mark.visible=Boolean(markPlayer);
+    if(markPlayer) mark.material=glyphs[markPlayer];
+  });
+  renderer.render(scene,camera);
+}
+renderer.setAnimationLoop(frame);
+
+function canvasRenderer(){
+  const canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+  let width,height,pixelRatio;
+  function project(point){
+    point.project(camera);
+    return [(point.x+1)*width/2,(1-point.y)*height/2];
+  }
+  function corners(item,points){
+    return points.map(([x,y,z=.036])=>project(
+      new THREE.Vector3(x,y,z).applyQuaternion(item.quaternion).add(item.position)
+    ));
+  }
+  function path(points){
+    ctx.beginPath();
+    points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+  }
+  const square=[[-.455,-.455],[.455,-.455],[.455,.455],[-.455,.455]];
+  const ring=Array.from({length:25},(_,i)=>{
+    const t=i*Math.PI/12;
+    return [.2*Math.cos(t),.2*Math.sin(t)];
+  });
+  return {
+    domElement:canvas,
+    setPixelRatio(value){pixelRatio=value;},
+    setSize(w,h){
+      width=w;height=h;canvas.width=w*pixelRatio;canvas.height=h*pixelRatio;
+      ctx.setTransform(pixelRatio,0,0,pixelRatio,0,0);
+    },
+    setAnimationLoop(draw){
+      function tick(){draw();requestAnimationFrame(tick);}
+      requestAnimationFrame(tick);
+    },
+    render(){
+      ctx.clearRect(0,0,width,height);
+      scene.updateMatrixWorld(true);
+      camera.updateMatrixWorld(true);
+      const visible=pieces.filter(({item})=>new THREE.Vector3(0,0,1)
+        .applyQuaternion(item.quaternion).dot(camera.position.clone().sub(item.position))>0);
+      visible.sort((a,b)=>camera.position.distanceToSquared(b.item.position)-camera.position.distanceToSquared(a.item.position));
+      for(const {item,tile,mark} of visible){
+        path(corners(item,square));ctx.closePath();
+        ctx.fillStyle='#'+tile.material.color.getHexString();ctx.fill();
+        if(!mark.visible) continue;
+        const isX=mark.material===glyphs.X;
+        ctx.strokeStyle=colors[isX?'X':'O'];
+        ctx.lineWidth=Math.max(2,height*.009);ctx.lineCap='round';
+        if(isX){
+          path(corners(item,[[-.18,-.18],[.18,.18]]));ctx.stroke();
+          path(corners(item,[[-.18,.18],[.18,-.18]]));ctx.stroke();
+        }else{
+          path(corners(item,ring));ctx.stroke();
+        }
+      }
+    }
+  };
+}

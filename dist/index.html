@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101116">
+<title>Caro Rubik</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header><div class="brand"><span class="logo">⬡</span> CARO<span class="accent">RUBIK</span></div><button id="help">Cách chơi</button></header>
+<main>
+<section class="intro"><div class="mode"><i></i> HAI NGƯỜI · CÙNG THIẾT BỊ</div><h1>Caro Rubik<span>.</span></h1><p>Nối 5 quân trên khối lập phương. Mỗi người có một lần vặn lớp.</p></section>
+<div class="layout">
+<section class="arena" aria-label="Bàn Caro 3D">
+<div class="arena-top"><span id="arenaStatus" aria-hidden="true"></span><button id="home" aria-label="Đặt lại góc nhìn">↺ Góc ban đầu</button></div>
+<div id="stage" tabindex="0" aria-label="Khối Rubik. Rê chuột lên ô và dùng phím mũi tên để xoay lớp."></div>
+<div class="arena-bottom"><div id="views" aria-label="Chọn mặt để quan sát"></div><span>Kéo để đổi góc nhìn · Bấm ô để đặt quân <span class="desktopKeys">· Rê chuột + phím mũi tên để xoay lớp</span></span></div>
+</section>
+<aside>
+<div class="players">
+<div class="player x" id="playerX"><b>×</b><div><strong>Người chơi X</strong><small id="stockX"></small></div></div>
+<div class="player o" id="playerO"><b>○</b><div><strong>Người chơi O</strong><small id="stockO"></small></div></div>
+</div>
+<section class="controls">
+<div id="step"></div><h2 id="status" aria-live="polite"></h2><p id="hint"></p>
+<div id="twist"><p class="shortcut">Rê chuột lên ô rồi dùng <kbd>←</kbd> <kbd>→</kbd> để xoay hàng, <kbd>↑</kbd> <kbd>↓</kbd> để xoay cột. <kbd>Esc</kbd> để hủy.</p><label for="layer">Lớp Rubik muốn xoay</label><select id="layer"><option value="">Không vặn lớp</option></select><div class="directions"><button id="ccw" aria-label="Xem trước ngược chiều kim đồng hồ">↶ 90°</button><button id="cw" aria-label="Xem trước theo chiều kim đồng hồ">↷ 90°</button></div><p id="previewNote" aria-live="polite"></p><button id="cancelTwist" class="plain" hidden>Hủy xoay</button></div>
+</section>
+<button id="reset">↻ Ván mới</button>
+</aside>
+</div>
+</main>
+<dialog id="rules"><h2>Cách chơi</h2><ol><li>X đi trước. Chạm ô trống để đặt quân và tự kết thúc lượt.</li><li>Mỗi người có một lần xoay 90° trong cả ván. Rê chuột lên ô rồi dùng phím mũi tên trái/phải để xoay hàng, lên/xuống để xoay cột. Bạn cũng có thể chọn lớp và chiều bằng các nút. Khi bạn đặt quân lên bàn đã xoay, cả cú xoay và nước đặt quân được áp dụng.</li><li>Nối ít nhất 5 quân liên tiếp. Hàng ngang và dọc có thể qua một cạnh. Đường chéo có thể qua hai cạnh để nối ba mặt, theo đường thẳng khi lần lượt trải phẳng các mặt. Bước chéo xuyên qua đúng đỉnh khối bị bỏ qua.</li><li>Kết quả được xét sau khi đặt quân. Một bên có hàng thắng thì bên đó thắng. Hai bên cùng có hàng thắng hoặc bàn kín mà chưa ai thắng thì hòa.</li></ol><form method="dialog"><button class="primary">Vào bàn</button></form></dialog>
+<dialog id="restart"><h2>Bắt đầu ván mới?</h2><p>Ván hiện tại sẽ kết thúc.</p><form method="dialog"><button value="cancel">Tiếp tục ván</button> <button value="reset" class="primary">Ván mới</button></form></dialog>
+<script type="module" src="./game.mjs"></script>
+</body>
+</html>
