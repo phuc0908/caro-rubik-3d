@@ -7,41 +7,41 @@
 <title>Caro Rubik</title>
 </head>
 <body>
-<header><div class="brand"><span class="logo">⬡</span> CARO<span class="accent">RUBIK</span></div><button id="help">Cách chơi</button></header>
+<header><div class="brand"><span class="logo">⬡</span> CARO<span class="accent">RUBIK</span></div><div class="header-actions"><button id="language" type="button" lang="en" aria-label="Switch to English">English</button><button id="help"><span data-en="How to play">Cách chơi</span></button></div></header>
 <main>
 <div class="layout">
-<section class="arena" aria-label="Bàn Caro 3D">
-<div class="arena-top"><span id="arenaStatus" aria-hidden="true"></span><button id="home" aria-label="Đặt lại góc nhìn">↺ Góc ban đầu</button></div>
-<div id="stage" tabindex="0" aria-label="Khối Rubik. Rê chuột lên ô và dùng phím WASD hoặc mũi tên để xoay lớp."></div>
-<div class="arena-bottom"><div id="views" aria-label="Chọn mặt để quan sát"></div><span>Kéo ô để xoay lớp · Kéo vùng trống để đổi góc nhìn · Bấm ô để đặt quân <span class="desktopKeys">· Rê chuột + phím WASD hoặc mũi tên để xoay lớp</span></span></div>
+<section class="arena" aria-label="Bàn Caro 3D" data-en-label="3D Caro board">
+<div class="arena-top"><span id="arenaStatus" aria-hidden="true"></span><button id="home" aria-label="Đặt lại góc nhìn" data-en-label="Reset camera view"><span data-en="↺ Reset view">↺ Góc ban đầu</span></button></div>
+<div id="stage" tabindex="0" aria-label="Khối Rubik. Rê chuột lên ô và dùng phím WASD hoặc mũi tên để xoay lớp." data-en-label="Cube. Hover over a tile and use WASD or arrow keys to twist."></div>
+<div class="arena-bottom"><div id="views" aria-label="Chọn mặt để quan sát" data-en-label="Choose a face to view"></div><span><span data-en="Drag a tile to twist · Drag empty space to orbit · Select an empty tile to place a mark">Kéo ô để xoay lớp · Kéo vùng trống để đổi góc nhìn · Bấm ô để đặt quân</span> <span class="desktopKeys"><span data-en="· Hover + WASD or arrow keys to twist">· Rê chuột + phím WASD hoặc mũi tên để xoay lớp</span></span></span></div>
 </section>
 <div class="side-panel">
-<aside class="match-panel" aria-label="Người chơi">
+<aside class="match-panel" aria-label="Người chơi" data-en-label="Players">
 <div class="players">
-<div class="player x" id="playerX"><b>×</b><div><strong>Người chơi X</strong><small id="stockX"></small></div></div>
-<div class="player o" id="playerO"><b>○</b><div><strong>Người chơi O</strong><small id="stockO"></small></div></div>
+<div class="player x" id="playerX"><b>×</b><div><strong><span data-en="Player X">Người chơi X</span></strong><small id="stockX"></small></div></div>
+<div class="player o" id="playerO"><b>○</b><div><strong><span data-en="Player O">Người chơi O</span></strong><small id="stockO"></small></div></div>
 </div>
-<button id="reset">↻ Ván mới</button>
+<button id="reset"><span data-en="↻ New game">↻ Ván mới</span></button>
 </aside>
-<aside class="controls" aria-label="Điều khiển lượt chơi">
+<aside class="controls" aria-label="Điều khiển lượt chơi" data-en-label="Turn controls">
 <div id="step"></div><h2 id="status" aria-live="polite"></h2><p id="hint"></p>
-<div id="twist"><p class="shortcut">Rê chuột lên ô rồi dùng <kbd>A</kbd>/<kbd>D</kbd> hoặc <kbd>←</kbd>/<kbd>→</kbd> để xoay hàng, <kbd>W</kbd>/<kbd>S</kbd> hoặc <kbd>↑</kbd>/<kbd>↓</kbd> để xoay cột. <kbd>Esc</kbd> để hủy.</p><label for="layer">Xoay thủ công</label><select id="layer"><option value="">Chọn lớp</option></select><div class="directions"><button id="ccw" aria-label="Xem trước ngược chiều kim đồng hồ">↶ 90°</button><button id="cw" aria-label="Xem trước theo chiều kim đồng hồ">↷ 90°</button></div><p id="previewNote" aria-live="polite"></p><button id="cancelTwist" class="plain" hidden>Hủy xoay</button></div>
+<div id="twist"><p class="shortcut">Rê chuột lên ô rồi dùng <kbd>A</kbd>/<kbd>D</kbd> <span data-en="or">hoặc</span> <kbd>←</kbd>/<kbd>→</kbd> <span data-en="to twist a row,">để xoay hàng,</span> <kbd>W</kbd>/<kbd>S</kbd> <span data-en="or">hoặc</span> <kbd>↑</kbd>/<kbd>↓</kbd> <span data-en="to twist a column.">để xoay cột.</span> <kbd>Esc</kbd> để hủy.</p><label for="layer"><span data-en="Manual twist">Xoay thủ công</span></label><select id="layer"><option value="" data-en="Choose a layer">Chọn lớp</option></select><div class="directions"><button id="ccw" aria-label="Xem trước ngược chiều kim đồng hồ" data-en-label="Preview counterclockwise twist">↶ 90°</button><button id="cw" aria-label="Xem trước theo chiều kim đồng hồ" data-en-label="Preview clockwise twist">↷ 90°</button></div><p id="previewNote" aria-live="polite"></p><button id="cancelTwist" class="plain" hidden><span data-en="Cancel twist">Hủy xoay</span></button></div>
 </aside>
 </div>
 </div>
 </main>
 <dialog id="rules" aria-labelledby="rules-title">
-  <h2 id="rules-title">Cách chơi Caro Rubik</h2>
-  <p>Hai người chơi chung một khối Rubik 5×5. X đi trước, rồi X và O thay phiên nhau đặt quân.</p>
-  <h3>Mỗi lượt: xoay tùy chọn, đặt quân bắt buộc</h3>
+  <h2 id="rules-title"><span data-en="How to play Caro Rubik">Cách chơi Caro Rubik</span></h2>
+  <p><span data-en="Two players share one 5×5 cube. X goes first, then X and O take turns placing marks.">Hai người chơi chung một khối Rubik 5×5. X đi trước, rồi X và O thay phiên nhau đặt quân.</span></p>
+  <h3><span data-en="Each turn: optional twist, then place a mark">Mỗi lượt: xoay tùy chọn, đặt quân bắt buộc</span></h3>
   <ol>
-    <li><strong>Kéo trên một ô để chọn lớp.</strong> Khi giữ chuột hoặc ngón tay, lớp nghiêng theo hướng kéo. Thả gần điểm bắt đầu thì lớp quay về. Thả đủ xa thì lớp vào nấc 90° để bạn xem trước.</li>
-    <li><strong>Muốn kéo xoay lớp khác? Hủy cú xoay trước.</strong> Khi đang xem trước, game giữ lớp đã chọn nên kéo trên ô sẽ không bắt đầu cú xoay mới. Bấm <kbd>Esc</kbd> hoặc <strong>Hủy xoay</strong>, đợi lớp về chỗ rồi kéo lại.</li>
-    <li><strong>Bấm ô trống để đặt quân và kết thúc lượt.</strong> Nếu đang xem trước, game áp dụng cú xoay rồi đặt quân vào ô bạn chọn. Bạn cũng có thể đặt quân ngay, bỏ qua bước xoay.</li>
+    <li><strong><span data-en="Drag a tile to select a layer.">Kéo trên một ô để chọn lớp.</span></strong> <span data-en="The layer follows your drag. Release near the start to cancel, or drag far enough and release to preview a 90° twist.">Khi giữ chuột hoặc ngón tay, lớp nghiêng theo hướng kéo. Thả gần điểm bắt đầu thì lớp quay về. Thả đủ xa thì lớp vào nấc 90° để bạn xem trước.</span></li>
+    <li><strong><span data-en="Want to drag a different layer? Cancel the preview first.">Muốn kéo xoay lớp khác? Hủy cú xoay trước.</span></strong> <span data-en="The selected layer stays in place during the preview. Press">Khi đang xem trước, game giữ lớp đã chọn nên kéo trên ô sẽ không bắt đầu cú xoay mới. Bấm</span> <kbd>Esc</kbd> <span data-en="or">hoặc</span> <strong><span data-en="Cancel twist">Hủy xoay</span></strong><span data-en=", wait for the layer to return, then drag again.">, đợi lớp về chỗ rồi kéo lại.</span></li>
+    <li><strong><span data-en="Select an empty tile to place your mark and end your turn.">Bấm ô trống để đặt quân và kết thúc lượt.</span></strong> <span data-en="The game applies any pending twist before placing your mark. You can also place a mark without twisting.">Nếu đang xem trước, game áp dụng cú xoay rồi đặt quân vào ô bạn chọn. Bạn cũng có thể đặt quân ngay, bỏ qua bước xoay.</span></li>
   </ol>
-  <h3>Thắng khi nối được 5 quân</h3>
+  <h3><span data-en="Connect five to win">Thắng khi nối được 5 quân</span></h3>
   <figure class="rules-example">
-    <svg viewBox="-12 -42 246 238" role="img" aria-label="Năm quân X được tô sáng, nối từ mặt trên sang mặt trước rồi sang mặt phải">
+    <svg viewBox="-12 -42 246 238" role="img" aria-label="Năm quân X được tô sáng, nối từ mặt trên sang mặt trước rồi sang mặt phải" data-en-label="Five highlighted X marks connect across the top, front and right faces">
 <polygon points="-8.0,40.5 14.0,50.6 14.0,28.5 -8.0,18.4" fill="#1953b6"/>
 <polygon points="16.0,51.5 38.0,61.6 38.0,39.5 16.0,29.4" fill="#1953b6"/>
 <polygon points="40.0,62.5 62.0,72.6 62.0,50.5 40.0,40.4" fill="#1953b6"/>
@@ -123,21 +123,21 @@
 <path d="M83.0,24.0l8,8m0,-8l-8,8" stroke="#171b12" stroke-width="2.5" stroke-linecap="round"/>
 <path d="M83.0,46.0l8,8m0,-8l-8,8" stroke="#171b12" stroke-width="2.5" stroke-linecap="round"/>
 </svg>
-    <figcaption><strong>Ví dụ X thắng qua ba mặt.</strong> Hai quân ở mặt trên, một ở mặt trước và hai ở mặt phải. Khi trải phẳng ba mặt theo đường đi, cả năm nằm trên một đường chéo.</figcaption>
+    <figcaption><strong><span data-en="Example: X wins across three faces.">Ví dụ X thắng qua ba mặt.</span></strong> <span data-en="Two marks on top, one in front and two on the right form a diagonal when the three faces are unfolded.">Hai quân ở mặt trên, một ở mặt trước và hai ở mặt phải. Khi trải phẳng ba mặt theo đường đi, cả năm nằm trên một đường chéo.</span></figcaption>
   </figure>
-  <p>Nối ít nhất 5 quân cùng loại liền nhau. Hàng ngang hoặc dọc có thể qua một cạnh. Đường chéo có thể qua hai cạnh, miễn là từng bước qua cạnh và tránh đi đúng qua đỉnh khối.</p>
-  <p>Sau khi đặt quân, game kiểm tra cả X và O. Nếu chỉ một bên có đường thắng, bên đó thắng. Nếu cả hai cùng có đường thắng hoặc bàn đầy mà chưa ai thắng, ván hòa.</p>
+  <p><span data-en="Connect at least five matching marks in a row. Horizontal and vertical lines can cross one edge. A diagonal can cross two edges if it stays straight across the unfolded faces. Corner tiles count, but a diagonal cannot jump directly through the point where three faces meet.">Nối ít nhất 5 quân cùng loại liền nhau. Hàng ngang hoặc dọc có thể qua một cạnh. Đường chéo có thể qua hai cạnh, miễn là từng bước qua cạnh và tránh đi đúng qua đỉnh khối.</span></p>
+  <p><span data-en="After each placement, the game checks both players. If only one has a winning line, that player wins. If both have a winning line or the board fills without a winner, the game is a draw.">Sau khi đặt quân, game kiểm tra cả X và O. Nếu chỉ một bên có đường thắng, bên đó thắng. Nếu cả hai cùng có đường thắng hoặc bàn đầy mà chưa ai thắng, ván hòa.</span></p>
   <details>
-    <summary>Điều khiển khác</summary>
+    <summary><span data-en="Other controls">Điều khiển khác</span></summary>
     <dl>
-      <dt>Đổi góc nhìn</dt><dd>Kéo vùng trống quanh khối.</dd>
-      <dt>Xoay bằng phím</dt><dd>Rê chuột lên ô. Dùng <kbd>A</kbd>/<kbd>D</kbd> hoặc <kbd>←</kbd>/<kbd>→</kbd> để xoay hàng, <kbd>W</kbd>/<kbd>S</kbd> hoặc <kbd>↑</kbd>/<kbd>↓</kbd> để xoay cột.</dd>
-      <dt>Xoay bằng nút</dt><dd>Chọn lớp ở mục <strong>Xoay thủ công</strong>, rồi bấm một trong hai nút 90°.</dd>
+      <dt><span data-en="Rotate the view">Đổi góc nhìn</span></dt><dd><span data-en="Drag the empty area around the cube.">Kéo vùng trống quanh khối.</span></dd>
+      <dt><span data-en="Twist with keys">Xoay bằng phím</span></dt><dd><span data-en="Hover over a tile. Use">Rê chuột lên ô. Dùng</span> <kbd>A</kbd>/<kbd>D</kbd> <span data-en="or">hoặc</span> <kbd>←</kbd>/<kbd>→</kbd> <span data-en="to twist a row,">để xoay hàng,</span> <kbd>W</kbd>/<kbd>S</kbd> <span data-en="or">hoặc</span> <kbd>↑</kbd>/<kbd>↓</kbd> <span data-en="to twist a column.">để xoay cột.</span></dd>
+      <dt><span data-en="Twist with buttons">Xoay bằng nút</span></dt><dd><span data-en="Select a layer under">Chọn lớp ở mục</span> <strong><span data-en="Manual twist">Xoay thủ công</span></strong><span data-en=", then press either 90° button.">, rồi bấm một trong hai nút 90°.</span></dd>
     </dl>
   </details>
-  <form method="dialog"><button class="primary">Vào bàn</button></form>
+  <form method="dialog"><button class="primary"><span data-en="Back to game">Vào bàn</span></button></form>
 </dialog>
-<dialog id="restart"><h2>Bắt đầu ván mới?</h2><p>Ván hiện tại sẽ kết thúc.</p><form method="dialog"><button value="cancel">Tiếp tục ván</button> <button value="reset" class="primary">Ván mới</button></form></dialog>
+<dialog id="restart"><h2><span data-en="Start a new game?">Bắt đầu ván mới?</span></h2><p><span data-en="This will end the current game.">Ván hiện tại sẽ kết thúc.</span></p><form method="dialog"><button value="cancel"><span data-en="Keep playing">Tiếp tục ván</span></button> <button value="reset" class="primary"><span data-en="New game">Ván mới</span></button></form></dialog>
 <script type="module" src="/src/game.mjs"></script>
 </body>
 </html>

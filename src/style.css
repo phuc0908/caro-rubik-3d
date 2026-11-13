@@ -85,3 +85,5 @@ main{width:100%;min-height:0;max-width:none;padding:8px;margin:0}
 #rules dd{margin:2px 0 0;color:var(--muted)}
 #rules form{display:flex;justify-content:flex-end}
 @media(max-width:420px){.rules-example{grid-template-columns:minmax(0,110px) minmax(0,1fr);gap:8px}}
+
+.header-actions{display:flex;gap:6px;align-items:center}

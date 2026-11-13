@@ -3,6 +3,37 @@ import './style.css';
 import {faces,tiles,layers,inLayer,hoveredTurn,turn,winners} from './rules.mjs';
 
 const $=id=>document.getElementById(id);
+let language='vi';
+try{if(localStorage.getItem('caro-language')==='en') language='en';}catch{}
+const tr=(vi,en)=>language==='en'?en:vi;
+const localized=[...document.querySelectorAll('[data-en], [data-en-label]')].map(node=>({
+  node, text:node.textContent,label:node.getAttribute('aria-label')
+}));
+const englishFaces=['Front','Right','Back','Left','Top','Bottom'];
+function layerName(layer){
+  if(language==='vi') return layer.name;
+  const face=englishFaces[layer.face];
+  return layer.depth===2?face+' face':face+' inner layer · '+['far','middle','near'][layer.depth+1];
+}
+function updateLanguage(){
+  document.documentElement.lang=language;
+  for(const {node,text,label} of localized){
+    if(node.dataset.en!==undefined) node.textContent=tr(text,node.dataset.en);
+    if(node.dataset.enLabel!==undefined) node.setAttribute('aria-label',tr(label,node.dataset.enLabel));
+  }
+  for(const [i,button] of [...$('views').children].entries()) button.textContent=tr(faces[i][0],englishFaces[i]);
+  for(const [i,layer] of layers.entries()) $('layer').options[i+1].textContent=layerName(layer);
+  const button=$('language');
+  button.lang=tr('en','vi');
+  button.textContent=tr('English','Tiếng Việt');
+  button.setAttribute('aria-label',tr('Switch to English','Chuyển sang tiếng Việt'));
+  update();
+}
+$('language').onclick=()=>{
+  language=tr('en','vi');
+  try{localStorage.setItem('caro-language',language);}catch{}
+  updateLanguage();
+};
 const stage=$('stage');
 const defaultView=new THREE.Vector3(9,7,10).normalize();
 const eye=defaultView.clone(), targetEye=eye.clone();
@@ -127,28 +158,28 @@ function reset(){
 
 function resultFor(current) {
   const lines=winners(current);
-  if(lines.X.size && lines.O.size) return {title:'Hòa · Hai đường thắng',lines};
-  if(lines.X.size || lines.O.size) return {title:(lines.X.size?'X':'O')+' thắng!',lines};
-  if(current.every(Boolean)) return {title:'Hòa · Bàn đã đầy',lines};
+  if(lines.X.size && lines.O.size) return {title:()=>tr('Hòa · Hai đường thắng','Draw · Both players connected five'),lines};
+  if(lines.X.size || lines.O.size) return {title:()=>(lines.X.size?'X':'O')+tr(' thắng!',' wins!'),lines};
+  if(current.every(Boolean)) return {title:()=>tr('Hòa · Bàn đã đầy','Draw · Board is full'),lines};
   return null;
 }
 function update(){
-  $('step').textContent='LƯỢT '+String(ply).padStart(2,'0');
-  $('status').textContent=outcome?.title??'Lượt của '+player;
-  $('arenaStatus').textContent=outcome?.title??(preview?'Đang xem trước · Esc để hủy và xoay lại':'Lượt '+player+' · Có thể xoay 1 lần');
-  $('hint').textContent=outcome?'Bắt đầu ván mới để chơi lại.':preview
-    ? 'Bấm ô trống để áp dụng cú xoay và đặt quân. Muốn kéo xoay lại, bấm Esc hoặc Hủy xoay.'
-    : 'Chọn ô trống để đặt quân và kết thúc lượt.';
+  $('step').textContent=tr('LƯỢT ','TURN ')+String(ply).padStart(2,'0');
+  $('status').textContent=outcome?.title()??tr('Lượt của ','Turn: ')+player;
+  $('arenaStatus').textContent=outcome?.title()??(preview?tr('Đang xem trước · Esc để hủy và xoay lại','Preview · Esc to cancel'):tr('Lượt ','Turn: ')+player+tr(' · Có thể xoay 1 lần',' · One twist available'));
+  $('hint').textContent=outcome?tr('Bắt đầu ván mới để chơi lại.','Start a new game to play again.'):preview
+    ? tr('Bấm ô trống để áp dụng cú xoay và đặt quân. Muốn kéo xoay lại, bấm Esc hoặc Hủy xoay.','Select an empty tile to apply the twist and place your mark. Press Esc or Cancel twist to try again.')
+    : tr('Chọn ô trống để đặt quân và kết thúc lượt.','Select an empty tile to place your mark and end your turn.');
   $('twist').hidden=Boolean(outcome);
   $('ccw').disabled=$('cw').disabled=$('layer').value==='';
   $('ccw').setAttribute('aria-pressed',preview?.direction===1);
   $('cw').setAttribute('aria-pressed',preview?.direction===-1);
   $('cancelTwist').hidden=$('layer').value==='';
   $('previewNote').textContent=preview
-    ? 'Đang xem trước · '+layers[preview.layer].name
+    ? tr('Đang xem trước · ','Preview · ')+layerName(layers[preview.layer])
     :'';
   for(const side of ['X','O']){
-    $('stock'+side).textContent=outcome?'Ván đã kết thúc':side===player?'Có thể xoay 1 lần':'Đang chờ lượt';
+    $('stock'+side).textContent=outcome?tr('Ván đã kết thúc','Game over'):side===player?tr('Có thể xoay 1 lần','One twist available'):tr('Đang chờ lượt','Waiting for turn');
     $('player'+side).classList.toggle('active',!outcome&&side===player);
   }
 }
@@ -336,7 +367,7 @@ function resize(){
   renderer.setSize(w,h,false);
 }
 new ResizeObserver(resize).observe(stage);
-reset();resize();
+reset();updateLanguage();resize();
 const rotation=new THREE.Quaternion();
 function settled(){
   if(drag?.choice) return false;
