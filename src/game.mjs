@@ -1,4 +1,5 @@
-import * as THREE from './three.module.min.js';
+import * as THREE from 'three';
+import './style.css';
 import {faces,tiles,layers,inLayer,hoveredTurn,turn,winners} from './rules.mjs';
 
 const $=id=>document.getElementById(id);
