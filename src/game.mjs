@@ -78,7 +78,14 @@ const hoverBorder=new THREE.LineLoop(
   new THREE.BufferGeometry().setFromPoints(borderCorners.map(([x,y])=>new THREE.Vector3(x,y,.044))),
   new THREE.LineBasicMaterial({color:0xdce6ef,transparent:true,opacity:.42,depthWrite:false})
 );
-const hitTargets=pieces.map(({tile})=>tile);
+const hitGeometry=new THREE.BoxGeometry(.97,.97,.07);
+const hitMaterial=new THREE.MeshBasicMaterial({visible:false});
+const hitTargets=pieces.map(({item,tile})=>{
+  const target=new THREE.Mesh(hitGeometry,hitMaterial);
+  target.userData=tile.userData;
+  item.add(target);
+  return target;
+});
 const ray=new THREE.Raycaster();
 const axis=new THREE.Vector3();
 let board,player,preview,outcome,ply,hover,pointer,drag,angle=0,renderedLayer=null;
