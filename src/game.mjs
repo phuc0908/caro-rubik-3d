@@ -64,9 +64,9 @@ const hoverBorder=new THREE.LineLoop(
 const hitTargets=pieces.map(({tile})=>tile);
 const ray=new THREE.Raycaster();
 const axis=new THREE.Vector3();
-let board,player,used,preview,outcome,ply,hover,pointer,drag,angle=0,renderedLayer=null;
+let board,player,preview,outcome,ply,hover,pointer,drag,angle=0,renderedLayer=null;
 function reset(){
-  board=Array(150).fill(null);player='X';used={X:false,O:false};
+  board=Array(150).fill(null);player='X';
   preview=null;outcome=null;ply=1;hover=null;
   targetEye.copy(defaultView);
   $('layer').value='';
@@ -83,11 +83,11 @@ function resultFor(current) {
 function update(){
   $('step').textContent='LƯỢT '+String(ply).padStart(2,'0');
   $('status').textContent=outcome?.title??'Lượt của '+player;
-  $('arenaStatus').textContent=outcome?.title??(preview?'Đang xem trước cú xoay · Esc để hủy':'Lượt '+player+' · '+(used[player]?'Đã dùng quyền xoay':'Còn 1 lần xoay'));
+  $('arenaStatus').textContent=outcome?.title??(preview?'Đang xem trước cú xoay · Esc để hủy':'Lượt '+player+' · Có thể xoay 1 lần');
   $('hint').textContent=outcome?'Bắt đầu ván mới để chơi lại.':preview
     ? 'Chọn ô trống trên khối đã xoay để dùng quyền xoay và kết thúc lượt.'
     : 'Chọn ô trống để đặt quân và kết thúc lượt.';
-  $('twist').hidden=Boolean(outcome)||used[player];
+  $('twist').hidden=Boolean(outcome);
   $('ccw').disabled=$('cw').disabled=$('layer').value==='';
   $('ccw').setAttribute('aria-pressed',preview?.direction===1);
   $('cw').setAttribute('aria-pressed',preview?.direction===-1);
@@ -96,7 +96,7 @@ function update(){
     ? 'Đang xem trước · '+layers[preview.layer].name
     :'';
   for(const side of ['X','O']){
-    $('stock'+side).textContent=used[side]?'Đã dùng lần vặn':'Còn 1 lần vặn';
+    $('stock'+side).textContent=outcome?'Ván đã kết thúc':side===player?'Có thể xoay 1 lần':'Đang chờ lượt';
     $('player'+side).classList.toggle('active',!outcome&&side===player);
   }
 }
@@ -109,7 +109,6 @@ function place(index){
   if(next[index]) return;
   next[index]=player;
   board=next;
-  if(preview) used[player]=true;
   angle=0;renderedLayer=null;hover=null;
   clearPreview();
   outcome=resultFor(board);
@@ -143,7 +142,7 @@ $('layer').onchange=()=>{
   update();
 };
 function chooseTurn(direction){
-  if(outcome || used[player] || $('layer').value==='') return;
+  if(outcome || $('layer').value==='') return;
   const layer=Number($('layer').value);
   setPreview({layer,direction});
   update();
@@ -171,7 +170,7 @@ const twistKeys=new Map([
   ['arrowdown',[false,true]],['s',[false,true]]
 ]);
 document.addEventListener('keydown',event=>{
-  if(outcome || used[player] || drag || event.altKey || event.ctrlKey || event.metaKey
+  if(outcome || drag || event.altKey || event.ctrlKey || event.metaKey
     || document.querySelector('dialog[open]') || event.target.closest?.('button, select, input, textarea')) return;
   if(event.key==='Escape' && preview){
     clearPreview();update();

@@ -9,7 +9,7 @@
 <body>
 <header><div class="brand"><span class="logo">⬡</span> CARO<span class="accent">RUBIK</span></div><button id="help">Cách chơi</button></header>
 <main>
-<section class="intro"><div class="mode"><i></i> HAI NGƯỜI · CÙNG THIẾT BỊ</div><h1>Caro Rubik<span>.</span></h1><p>Nối 5 quân trên khối lập phương. Mỗi người có một lần vặn lớp.</p></section>
+<section class="intro"><div class="mode"><i></i> HAI NGƯỜI · CÙNG THIẾT BỊ</div><h1>Caro Rubik<span>.</span></h1><p>Nối 5 quân trên khối lập phương. Mỗi lượt có thể xoay một lớp trước khi đặt quân.</p></section>
 <div class="layout">
 <section class="arena" aria-label="Bàn Caro 3D">
 <div class="arena-top"><span id="arenaStatus" aria-hidden="true"></span><button id="home" aria-label="Đặt lại góc nhìn">↺ Góc ban đầu</button></div>
@@ -29,7 +29,7 @@
 </aside>
 </div>
 </main>
-<dialog id="rules"><h2>Cách chơi</h2><ol><li>X đi trước. Chạm ô trống để đặt quân và tự kết thúc lượt.</li><li>Mỗi người có một lần xoay 90° trong cả ván. Rê chuột lên ô rồi dùng A/D hoặc ←/→ để xoay hàng, W/S hoặc ↑/↓ để xoay cột. Bạn cũng có thể chọn lớp và chiều bằng các nút. Khi bạn đặt quân lên bàn đã xoay, cả cú xoay và nước đặt quân được áp dụng.</li><li>Nối ít nhất 5 quân liên tiếp. Hàng ngang và dọc có thể qua một cạnh. Đường chéo có thể qua hai cạnh để nối ba mặt, theo đường thẳng khi lần lượt trải phẳng các mặt. Bước chéo xuyên qua đúng đỉnh khối bị bỏ qua.</li><li>Kết quả được xét sau khi đặt quân. Một bên có hàng thắng thì bên đó thắng. Hai bên cùng có hàng thắng hoặc bàn kín mà chưa ai thắng thì hòa.</li></ol><form method="dialog"><button class="primary">Vào bàn</button></form></dialog>
+<dialog id="rules"><h2>Cách chơi</h2><ol><li>X đi trước. Chạm ô trống để đặt quân và tự kết thúc lượt.</li><li>Mỗi lượt bạn có thể xoay một lớp 90° trước khi đặt quân. Rê chuột lên ô rồi dùng A/D hoặc ←/→ để xoay hàng, W/S hoặc ↑/↓ để xoay cột. Bạn cũng có thể chọn lớp và chiều bằng các nút. Khi bạn đặt quân lên bàn đã xoay, cả cú xoay và nước đặt quân được áp dụng.</li><li>Nối ít nhất 5 quân liên tiếp. Hàng ngang và dọc có thể qua một cạnh. Đường chéo có thể qua hai cạnh để nối ba mặt, theo đường thẳng khi lần lượt trải phẳng các mặt. Bước chéo xuyên qua đúng đỉnh khối bị bỏ qua.</li><li>Kết quả được xét sau khi đặt quân. Một bên có hàng thắng thì bên đó thắng. Hai bên cùng có hàng thắng hoặc bàn kín mà chưa ai thắng thì hòa.</li></ol><form method="dialog"><button class="primary">Vào bàn</button></form></dialog>
 <dialog id="restart"><h2>Bắt đầu ván mới?</h2><p>Ván hiện tại sẽ kết thúc.</p><form method="dialog"><button value="cancel">Tiếp tục ván</button> <button value="reset" class="primary">Ván mới</button></form></dialog>
 <script type="module" src="/src/game.mjs"></script>
 </body>

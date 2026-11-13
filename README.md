@@ -1,6 +1,6 @@
 # Caro Rubik 3D
 
-A local two-player Gomoku game built with Three.js. Connect five across cube faces and twist one layer per player per match.
+A local two-player Gomoku game built with Three.js. Connect five across cube faces and optionally twist one layer before placing a mark each turn.
 
 ## Development
 
