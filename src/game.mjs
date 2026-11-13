@@ -42,7 +42,6 @@ function glyph(player){
 }
 const glyphs={X:glyph('X'),O:glyph('O')};
 const palette=[0x344450,0x3b3953,0x334b43,0x493b47,0x435069,0x54483d];
-const hoverTint=new THREE.Color(0xffffff);
 const layerTint=new THREE.Color(0xb9d16b);
 const pieces=tiles.map(({p,n,u,v,face},i)=>{
   const item=new THREE.Group();
@@ -57,6 +56,11 @@ const pieces=tiles.map(({p,n,u,v,face},i)=>{
   cube.add(item);
   return {item,tile,mark,position:item.position.clone(),orientation:item.quaternion.clone()};
 });
+const borderCorners=[[-.42,-.42],[.42,-.42],[.42,.42],[-.42,.42]];
+const hoverBorder=new THREE.LineLoop(
+  new THREE.BufferGeometry().setFromPoints(borderCorners.map(([x,y])=>new THREE.Vector3(x,y,.044))),
+  new THREE.LineBasicMaterial({color:0xdce6ef,transparent:true,opacity:.42,depthWrite:false})
+);
 const hitTargets=pieces.map(({tile})=>tile);
 const ray=new THREE.Raycaster();
 const axis=new THREE.Vector3();
@@ -160,10 +164,12 @@ $('help').onclick=()=>$('rules').showModal();
 $('reset').onclick=()=>{if(ply===1&&!outcome) reset();else $('restart').showModal();};
 $('restart').addEventListener('close',()=>{if($('restart').returnValue==='reset') reset();});
 
-const arrowKeys={
-  ArrowLeft:[true,false],ArrowRight:[true,true],
-  ArrowUp:[false,false],ArrowDown:[false,true]
-};
+const twistKeys=new Map([
+  ['arrowleft',[true,false]],['a',[true,false]],
+  ['arrowright',[true,true]],['d',[true,true]],
+  ['arrowup',[false,false]],['w',[false,false]],
+  ['arrowdown',[false,true]],['s',[false,true]]
+]);
 document.addEventListener('keydown',event=>{
   if(outcome || used[player] || drag || event.altKey || event.ctrlKey || event.metaKey
     || document.querySelector('dialog[open]') || event.target.closest?.('button, select, input, textarea')) return;
@@ -171,7 +177,7 @@ document.addEventListener('keydown',event=>{
     clearPreview();update();
     return;
   }
-  const command=arrowKeys[event.key];
+  const command=twistKeys.get(event.key.toLowerCase());
   if(!command || !pointer) return;
   const [horizontal,forward]=command;
   const active=preview?.keyboard && preview.horizontal===horizontal ? preview : null;
@@ -284,6 +290,7 @@ function frame(time){
   if(renderedLayer!==null) rotation.setFromAxisAngle(axis.set(...faces[layers[renderedLayer].face][1]),angle);
   const destinations=preview?permutations[preview.layer][preview.direction]:tileIndices;
   const lines=outcome?.lines;
+  hoverBorder.removeFromParent();
   pieces.forEach(({item,tile,mark,position,orientation},i)=>{
     item.position.copy(position);item.quaternion.copy(orientation);
     if(renderedLayer!==null&&inLayer(tiles[i],layers[renderedLayer])){
@@ -299,7 +306,7 @@ function frame(time){
       ? (markPlayer==='X'?0x536936:0x325c70)
       : palette[tiles[i].face]);
     if(selected) tile.material.color.lerp(layerTint,.13);
-    if(hovered) tile.material.color.lerp(hoverTint,.045);
+    if(hovered) item.add(hoverBorder);
     mark.visible=Boolean(markPlayer);
     if(markPlayer) mark.material=glyphs[markPlayer];
   });
@@ -349,6 +356,10 @@ function canvasRenderer(){
       for(const {item,tile,mark} of visible){
         path(corners(item,square));ctx.closePath();
         ctx.fillStyle='#'+tile.material.color.getHexString();ctx.fill();
+        if(hoverBorder.parent===item){
+          path(corners(item,borderCorners));ctx.closePath();
+          ctx.strokeStyle='rgba(220,230,239,.42)';ctx.lineWidth=1;ctx.stroke();
+        }
         if(!mark.visible) continue;
         const isX=mark.material===glyphs.X;
         ctx.strokeStyle=colors[isX?'X':'O'];
