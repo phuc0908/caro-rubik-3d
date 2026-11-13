@@ -9,10 +9,6 @@ aside{display:grid;gap:12px}.players{display:grid;gap:7px}.player,.controls{back
 @media(max-width:400px){main{padding-inline:12px}.arena{height:375px}#views button{padding:6px 7px}}
 
 main{max-width:1600px;padding-top:16px}
-.intro{display:flex;align-items:baseline;gap:16px;margin-bottom:12px}
-.intro h1{font-size:clamp(30px,4vw,45px);margin:0;white-space:nowrap}
-.intro .mode{display:none}
-.intro p{font-size:13px}
 .layout{grid-template-columns:minmax(0,1fr)}
 .arena{height:clamp(440px,calc(100svh - 148px),950px)}
 #stage{inset:49px 12px 73px}
@@ -20,8 +16,12 @@ aside{grid-template-columns:minmax(230px,1fr) minmax(320px,2fr) auto;align-items
 .players{grid-template-columns:1fr 1fr}
 .shortcut{margin-top:10px!important}
 kbd{display:inline-block;padding:0 4px;border:1px solid #4b505c;border-radius:4px;color:#eff1f5;font:inherit}
-@media(max-width:760px){.intro{display:block}.intro p{margin-top:6px}.arena{height:clamp(390px,68svh,680px)}aside{grid-template-columns:1fr}}
+@media(max-width:760px){.arena{height:clamp(390px,68svh,680px)}aside{grid-template-columns:1fr}}
 
 #arenaStatus{color:var(--lime);letter-spacing:.035em}
 .arena-bottom .desktopKeys{display:inline;margin:0}
 @media(pointer:coarse){.arena-bottom .desktopKeys{display:none}}
+
+.arena{background:#292725;height:clamp(440px,calc(100svh - 98px),1050px)}
+.arena::before{display:none}
+@media(max-width:760px){.arena{height:clamp(390px,calc(100svh - 105px),740px)}}

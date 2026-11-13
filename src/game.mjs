@@ -4,7 +4,7 @@ import {faces,tiles,layers,inLayer,hoveredTurn,turn,winners} from './rules.mjs';
 
 const $=id=>document.getElementById(id);
 const stage=$('stage');
-const defaultView=new THREE.Vector3(8,6,10).normalize();
+const defaultView=new THREE.Vector3(9,7,10).normalize();
 const eye=defaultView.clone(), targetEye=eye.clone();
 const camera=new THREE.PerspectiveCamera(35,1,.1,80);
 const scene=new THREE.Scene();
@@ -18,9 +18,26 @@ renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 stage.append(renderer.domElement);
 const cube=new THREE.Group();
 scene.add(cube);
-const body=new THREE.Mesh(new THREE.BoxGeometry(4.95,4.95,4.95),new THREE.MeshBasicMaterial({color:0x14161d}));
+const body=new THREE.Mesh(new THREE.BoxGeometry(4.95,4.95,4.95),new THREE.MeshBasicMaterial({color:0x101010}));
 cube.add(body);
-const tileGeometry=new THREE.BoxGeometry(.91,.91,.07);
+function roundedSquare(halfSize,radius){
+  const center=halfSize-radius;
+  return [[center,center],[-center,center],[-center,-center],[center,-center]]
+    .flatMap(([x,y],corner)=>Array.from({length:7},(_,step)=>{
+      const angle=(corner+step/6)*Math.PI/2;
+      return [x+radius*Math.cos(angle),y+radius*Math.sin(angle)];
+    }));
+}
+const stickerCorners=roundedSquare(.445,.085);
+const backingCorners=roundedSquare(.499,.105);
+const borderCorners=roundedSquare(.408,.07);
+function faceGeometry(points,z){
+  const shape=new THREE.Shape(points.map(([x,y])=>new THREE.Vector2(x,y)));
+  return new THREE.ShapeGeometry(shape).translate(0,0,z);
+}
+const tileGeometry=faceGeometry(stickerCorners,.036);
+const backingGeometry=faceGeometry(backingCorners,.009);
+const backingMaterial=new THREE.MeshBasicMaterial({color:0x111111});
 const glyphGeometry={
   X:new THREE.PlaneGeometry(.72,.72),
   O:new THREE.PlaneGeometry(.72,.72)
@@ -35,13 +52,14 @@ function glyph(player){
   if(player==='X'){
     ctx.moveTo(34,34);ctx.lineTo(94,94);ctx.moveTo(94,34);ctx.lineTo(34,94);
   }else ctx.arc(64,64,36,0,Math.PI*2);
-  ctx.stroke();
+  ctx.strokeStyle='#181818';ctx.lineWidth=22;ctx.stroke();
+  ctx.strokeStyle=colors[player];ctx.lineWidth=13;ctx.stroke();
   const texture=new THREE.CanvasTexture(canvas);
   texture.colorSpace=THREE.SRGBColorSpace;
   return new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false});
 }
 const glyphs={X:glyph('X'),O:glyph('O')};
-const palette=[0x344450,0x3b3953,0x334b43,0x493b47,0x435069,0x54483d];
+const palette=[0x1953b6,0xe9510e,0x24a65a,0xc72836,0xf1f0ed,0xf5ca28];
 const layerTint=new THREE.Color(0xb9d16b);
 const pieces=tiles.map(({p,n,u,v,face},i)=>{
   const item=new THREE.Group();
@@ -52,11 +70,10 @@ const pieces=tiles.map(({p,n,u,v,face},i)=>{
 
   const mark=new THREE.Mesh(glyphGeometry.X,glyphs.X);
   mark.position.z=.05;
-  item.add(tile,mark);
+  item.add(new THREE.Mesh(backingGeometry,backingMaterial),tile,mark);
   cube.add(item);
   return {item,tile,mark,position:item.position.clone(),orientation:item.quaternion.clone()};
 });
-const borderCorners=[[-.42,-.42],[.42,-.42],[.42,.42],[-.42,.42]];
 const hoverBorder=new THREE.LineLoop(
   new THREE.BufferGeometry().setFromPoints(borderCorners.map(([x,y])=>new THREE.Vector3(x,y,.044))),
   new THREE.LineBasicMaterial({color:0xdce6ef,transparent:true,opacity:.42,depthWrite:false})
@@ -329,7 +346,6 @@ function canvasRenderer(){
     ctx.beginPath();
     points.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
   }
-  const square=[[-.455,-.455],[.455,-.455],[.455,.455],[-.455,.455]];
   const ring=Array.from({length:25},(_,i)=>{
     const t=i*Math.PI/12;
     return [.2*Math.cos(t),.2*Math.sin(t)];
@@ -353,7 +369,9 @@ function canvasRenderer(){
         .applyQuaternion(item.quaternion).dot(camera.position.clone().sub(item.position))>0);
       visible.sort((a,b)=>camera.position.distanceToSquared(b.item.position)-camera.position.distanceToSquared(a.item.position));
       for(const {item,tile,mark} of visible){
-        path(corners(item,square));ctx.closePath();
+        path(corners(item,backingCorners));ctx.closePath();
+        ctx.fillStyle='#111111';ctx.fill();
+        path(corners(item,stickerCorners));ctx.closePath();
         ctx.fillStyle='#'+tile.material.color.getHexString();ctx.fill();
         if(hoverBorder.parent===item){
           path(corners(item,borderCorners));ctx.closePath();
@@ -361,13 +379,17 @@ function canvasRenderer(){
         }
         if(!mark.visible) continue;
         const isX=mark.material===glyphs.X;
-        ctx.strokeStyle=colors[isX?'X':'O'];
-        ctx.lineWidth=Math.max(2,height*.009);ctx.lineCap='round';
+        ctx.lineCap='round';
+        const strokeMark=points=>{
+          path(corners(item,points));
+          ctx.strokeStyle='#181818';ctx.lineWidth=Math.max(4,height*.014);ctx.stroke();
+          ctx.strokeStyle=colors[isX?'X':'O'];ctx.lineWidth=Math.max(2,height*.009);ctx.stroke();
+        };
         if(isX){
-          path(corners(item,[[-.18,-.18],[.18,.18]]));ctx.stroke();
-          path(corners(item,[[-.18,.18],[.18,-.18]]));ctx.stroke();
+          strokeMark([[-.18,-.18],[.18,.18]]);
+          strokeMark([[-.18,.18],[.18,-.18]]);
         }else{
-          path(corners(item,ring));ctx.stroke();
+          strokeMark(ring);
         }
       }
     }
