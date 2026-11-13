@@ -67,3 +67,21 @@ main{width:100%;min-height:0;max-width:none;padding:8px;margin:0}
   #hint,.arena-bottom>span{display:none}
   #stage{inset:35px 3px 37px}
 }
+
+#rules{max-width:600px;max-height:calc(100dvh - 24px);overflow:auto}
+#rules h2{margin-bottom:8px}
+#rules h3{margin:16px 0 6px;font-size:16px}
+#rules ol{padding-left:22px;margin:8px 0}
+#rules p,#rules li,#rules figcaption,#rules dd{font-size:14px;line-height:1.5}
+#rules p+p{margin-top:8px}
+.rules-example{display:grid;grid-template-columns:minmax(0,160px) minmax(0,1fr);align-items:center;gap:12px;margin:8px 0 10px;padding:10px;background:#111319;border:1px solid var(--line);border-radius:10px}
+.rules-example svg{display:block;width:100%}
+.rules-example figcaption{color:var(--muted)}
+.rules-example strong{display:block;color:var(--lime);margin-bottom:4px}
+#rules details{margin-top:12px}
+#rules summary{cursor:pointer;font-size:14px;font-weight:700}
+#rules dl{margin:8px 0}
+#rules dt{font-size:13px;font-weight:700;margin-top:6px}
+#rules dd{margin:2px 0 0;color:var(--muted)}
+#rules form{display:flex;justify-content:flex-end}
+@media(max-width:420px){.rules-example{grid-template-columns:minmax(0,110px) minmax(0,1fr);gap:8px}}

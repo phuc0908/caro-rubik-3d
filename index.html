@@ -30,7 +30,112 @@
 </div>
 </div>
 </main>
-<dialog id="rules"><h2>Cách chơi</h2><ol><li>X đi trước. Chạm ô trống để đặt quân và tự kết thúc lượt.</li><li>Mỗi lượt bạn có thể xoay một lớp 90° trước khi đặt quân. Kéo trực tiếp trên ô để xem trước cú xoay, hoặc rê chuột lên ô rồi dùng A/D hoặc ←/→ để xoay hàng, W/S hoặc ↑/↓ để xoay cột. Bạn cũng có thể chọn lớp và chiều bằng các nút. Khi bạn đặt quân lên bàn đã xoay, cả cú xoay và nước đặt quân được áp dụng.</li><li>Nối ít nhất 5 quân liên tiếp. Hàng ngang và dọc có thể qua một cạnh. Đường chéo có thể qua hai cạnh để nối ba mặt, theo đường thẳng khi lần lượt trải phẳng các mặt. Bước chéo xuyên qua đúng đỉnh khối bị bỏ qua.</li><li>Kết quả được xét sau khi đặt quân. Một bên có hàng thắng thì bên đó thắng. Hai bên cùng có hàng thắng hoặc bàn kín mà chưa ai thắng thì hòa.</li></ol><form method="dialog"><button class="primary">Vào bàn</button></form></dialog>
+<dialog id="rules" aria-labelledby="rules-title">
+  <h2 id="rules-title">Cách chơi Caro Rubik</h2>
+  <p>Hai người chơi chung một khối Rubik 5×5. X đi trước, rồi X và O thay phiên nhau đặt quân.</p>
+  <h3>Mỗi lượt làm gì?</h3>
+  <ol>
+    <li><strong>Xoay một lớp nếu muốn.</strong> Kéo một ô theo hàng hoặc cột để xem trước cú xoay 90°. Có thể bấm <kbd>Esc</kbd> hoặc chọn <strong>Hủy xoay</strong> để quay lại.</li>
+    <li><strong>Bấm một ô trống để đặt quân.</strong> Cú xoay đang xem trước sẽ được áp dụng cùng nước đặt quân. Sau đó game tự chuyển lượt.</li>
+  </ol>
+  <h3>Thắng khi nối được 5 quân</h3>
+  <figure class="rules-example">
+    <svg viewBox="-12 -42 246 238" role="img" aria-label="Năm quân X được tô sáng, nối từ mặt trên sang mặt trước rồi sang mặt phải">
+<polygon points="-8.0,40.5 14.0,50.6 14.0,28.5 -8.0,18.4" fill="#1953b6"/>
+<polygon points="16.0,51.5 38.0,61.6 38.0,39.5 16.0,29.4" fill="#1953b6"/>
+<polygon points="40.0,62.5 62.0,72.6 62.0,50.5 40.0,40.4" fill="#1953b6"/>
+<polygon points="64.0,73.5 86.0,83.6 86.0,61.5 64.0,51.4" fill="#1953b6"/>
+<polygon points="88.0,84.5 110.0,94.6 110.0,72.5 88.0,62.4" fill="#dafa76"/>
+<polygon points="-8.0,64.5 14.0,74.6 14.0,52.5 -8.0,42.4" fill="#1953b6"/>
+<polygon points="16.0,75.5 38.0,85.6 38.0,63.5 16.0,53.4" fill="#1953b6"/>
+<polygon points="40.0,86.5 62.0,96.6 62.0,74.5 40.0,64.4" fill="#1953b6"/>
+<polygon points="64.0,97.5 86.0,107.6 86.0,85.5 64.0,75.4" fill="#1953b6"/>
+<polygon points="88.0,108.5 110.0,118.6 110.0,96.5 88.0,86.4" fill="#1953b6"/>
+<polygon points="-8.0,88.5 14.0,98.6 14.0,76.5 -8.0,66.4" fill="#1953b6"/>
+<polygon points="16.0,99.5 38.0,109.6 38.0,87.5 16.0,77.4" fill="#1953b6"/>
+<polygon points="40.0,110.5 62.0,120.6 62.0,98.5 40.0,88.4" fill="#1953b6"/>
+<polygon points="64.0,121.5 86.0,131.6 86.0,109.5 64.0,99.4" fill="#1953b6"/>
+<polygon points="88.0,132.5 110.0,142.6 110.0,120.5 88.0,110.4" fill="#1953b6"/>
+<polygon points="-8.0,112.5 14.0,122.6 14.0,100.5 -8.0,90.4" fill="#1953b6"/>
+<polygon points="16.0,123.5 38.0,133.6 38.0,111.5 16.0,101.4" fill="#1953b6"/>
+<polygon points="40.0,134.5 62.0,144.6 62.0,122.5 40.0,112.4" fill="#1953b6"/>
+<polygon points="64.0,145.5 86.0,155.6 86.0,133.5 64.0,123.4" fill="#1953b6"/>
+<polygon points="88.0,156.5 110.0,166.6 110.0,144.5 88.0,134.4" fill="#1953b6"/>
+<polygon points="-8.0,136.5 14.0,146.6 14.0,124.5 -8.0,114.4" fill="#1953b6"/>
+<polygon points="16.0,147.5 38.0,157.6 38.0,135.5 16.0,125.4" fill="#1953b6"/>
+<polygon points="40.0,158.5 62.0,168.6 62.0,146.5 40.0,136.4" fill="#1953b6"/>
+<polygon points="64.0,169.5 86.0,179.6 86.0,157.5 64.0,147.4" fill="#1953b6"/>
+<polygon points="88.0,180.5 110.0,190.6 110.0,168.5 88.0,158.4" fill="#1953b6"/>
+<polygon points="112.0,94.6 134.0,84.5 134.0,62.4 112.0,72.5" fill="#b94314"/>
+<polygon points="136.0,83.6 158.0,73.5 158.0,51.4 136.0,61.5" fill="#b94314"/>
+<polygon points="160.0,72.6 182.0,62.5 182.0,40.4 160.0,50.5" fill="#b94314"/>
+<polygon points="184.0,61.6 206.0,51.5 206.0,29.4 184.0,39.5" fill="#b94314"/>
+<polygon points="208.0,50.6 230.0,40.5 230.0,18.4 208.0,28.5" fill="#b94314"/>
+<polygon points="112.0,118.6 134.0,108.5 134.0,86.4 112.0,96.5" fill="#dafa76"/>
+<polygon points="136.0,107.6 158.0,97.5 158.0,75.4 136.0,85.5" fill="#b94314"/>
+<polygon points="160.0,96.6 182.0,86.5 182.0,64.4 160.0,74.5" fill="#b94314"/>
+<polygon points="184.0,85.6 206.0,75.5 206.0,53.4 184.0,63.5" fill="#b94314"/>
+<polygon points="208.0,74.6 230.0,64.5 230.0,42.4 208.0,52.5" fill="#b94314"/>
+<polygon points="112.0,142.6 134.0,132.5 134.0,110.4 112.0,120.5" fill="#b94314"/>
+<polygon points="136.0,131.6 158.0,121.5 158.0,99.4 136.0,109.5" fill="#dafa76"/>
+<polygon points="160.0,120.6 182.0,110.5 182.0,88.4 160.0,98.5" fill="#b94314"/>
+<polygon points="184.0,109.6 206.0,99.5 206.0,77.4 184.0,87.5" fill="#b94314"/>
+<polygon points="208.0,98.6 230.0,88.5 230.0,66.4 208.0,76.5" fill="#b94314"/>
+<polygon points="112.0,166.6 134.0,156.5 134.0,134.4 112.0,144.5" fill="#b94314"/>
+<polygon points="136.0,155.6 158.0,145.5 158.0,123.4 136.0,133.5" fill="#b94314"/>
+<polygon points="160.0,144.6 182.0,134.5 182.0,112.4 160.0,122.5" fill="#b94314"/>
+<polygon points="184.0,133.6 206.0,123.5 206.0,101.4 184.0,111.5" fill="#b94314"/>
+<polygon points="208.0,122.6 230.0,112.5 230.0,90.4 208.0,100.5" fill="#b94314"/>
+<polygon points="112.0,190.6 134.0,180.5 134.0,158.4 112.0,168.5" fill="#b94314"/>
+<polygon points="136.0,179.6 158.0,169.5 158.0,147.4 136.0,157.5" fill="#b94314"/>
+<polygon points="160.0,168.6 182.0,158.5 182.0,136.4 160.0,146.5" fill="#b94314"/>
+<polygon points="184.0,157.6 206.0,147.5 206.0,125.4 184.0,135.5" fill="#b94314"/>
+<polygon points="208.0,146.6 230.0,136.5 230.0,114.4 208.0,124.5" fill="#b94314"/>
+<polygon points="88.9,-27.0 111.0,-16.9 133.1,-27.0 111.0,-37.1" fill="#eae8e1"/>
+<polygon points="112.9,-16.0 135.0,-5.9 157.1,-16.0 135.0,-26.1" fill="#eae8e1"/>
+<polygon points="136.9,-5.0 159.0,5.1 181.1,-5.0 159.0,-15.1" fill="#eae8e1"/>
+<polygon points="160.9,6.0 183.0,16.1 205.1,6.0 183.0,-4.1" fill="#eae8e1"/>
+<polygon points="184.9,17.0 207.0,27.1 229.1,17.0 207.0,6.9" fill="#eae8e1"/>
+<polygon points="64.9,-16.0 87.0,-5.9 109.1,-16.0 87.0,-26.1" fill="#eae8e1"/>
+<polygon points="88.9,-5.0 111.0,5.1 133.1,-5.0 111.0,-15.1" fill="#eae8e1"/>
+<polygon points="112.9,6.0 135.0,16.1 157.1,6.0 135.0,-4.1" fill="#eae8e1"/>
+<polygon points="136.9,17.0 159.0,27.1 181.1,17.0 159.0,6.9" fill="#eae8e1"/>
+<polygon points="160.9,28.0 183.0,38.1 205.1,28.0 183.0,17.9" fill="#eae8e1"/>
+<polygon points="40.9,-5.0 63.0,5.1 85.1,-5.0 63.0,-15.1" fill="#eae8e1"/>
+<polygon points="64.9,6.0 87.0,16.1 109.1,6.0 87.0,-4.1" fill="#eae8e1"/>
+<polygon points="88.9,17.0 111.0,27.1 133.1,17.0 111.0,6.9" fill="#eae8e1"/>
+<polygon points="112.9,28.0 135.0,38.1 157.1,28.0 135.0,17.9" fill="#eae8e1"/>
+<polygon points="136.9,39.0 159.0,49.1 181.1,39.0 159.0,28.9" fill="#eae8e1"/>
+<polygon points="16.9,6.0 39.0,16.1 61.1,6.0 39.0,-4.1" fill="#eae8e1"/>
+<polygon points="40.9,17.0 63.0,27.1 85.1,17.0 63.0,6.9" fill="#eae8e1"/>
+<polygon points="64.9,28.0 87.0,38.1 109.1,28.0 87.0,17.9" fill="#dafa76"/>
+<polygon points="88.9,39.0 111.0,49.1 133.1,39.0 111.0,28.9" fill="#eae8e1"/>
+<polygon points="112.9,50.0 135.0,60.1 157.1,50.0 135.0,39.9" fill="#eae8e1"/>
+<polygon points="-7.1,17.0 15.0,27.1 37.1,17.0 15.0,6.9" fill="#eae8e1"/>
+<polygon points="16.9,28.0 39.0,38.1 61.1,28.0 39.0,17.9" fill="#eae8e1"/>
+<polygon points="40.9,39.0 63.0,49.1 85.1,39.0 63.0,28.9" fill="#eae8e1"/>
+<polygon points="64.9,50.0 87.0,60.1 109.1,50.0 87.0,39.9" fill="#dafa76"/>
+<polygon points="88.9,61.0 111.0,71.1 133.1,61.0 111.0,50.9" fill="#eae8e1"/>
+<path d="M95.0,74.5l8,8m0,-8l-8,8" stroke="#171b12" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M119.0,98.5l8,8m0,-8l-8,8" stroke="#171b12" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M143.0,111.5l8,8m0,-8l-8,8" stroke="#171b12" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M83.0,24.0l8,8m0,-8l-8,8" stroke="#171b12" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M83.0,46.0l8,8m0,-8l-8,8" stroke="#171b12" stroke-width="2.5" stroke-linecap="round"/>
+</svg>
+    <figcaption><strong>Ví dụ X thắng qua ba mặt.</strong> Hai quân ở mặt trên, một ở mặt trước và hai ở mặt phải. Khi trải phẳng ba mặt theo đường đi, cả năm nằm trên một đường chéo.</figcaption>
+  </figure>
+  <p>Nối ít nhất 5 quân cùng loại liền nhau. Hàng ngang hoặc dọc có thể qua một cạnh. Đường chéo có thể qua hai cạnh, miễn là từng bước qua cạnh và tránh đi đúng qua đỉnh khối.</p>
+  <p>Game xét thắng sau khi đặt quân. Nếu cả hai cùng có đường thắng hoặc bàn đầy mà chưa ai thắng, ván hòa.</p>
+  <details>
+    <summary>Điều khiển khác</summary>
+    <dl>
+      <dt>Đổi góc nhìn</dt><dd>Kéo vùng trống quanh khối.</dd>
+      <dt>Xoay bằng phím</dt><dd>Rê chuột lên ô. Dùng <kbd>A</kbd>/<kbd>D</kbd> hoặc <kbd>←</kbd>/<kbd>→</kbd> để xoay hàng, <kbd>W</kbd>/<kbd>S</kbd> hoặc <kbd>↑</kbd>/<kbd>↓</kbd> để xoay cột.</dd>
+      <dt>Xoay bằng nút</dt><dd>Chọn lớp ở mục <strong>Xoay thủ công</strong>, rồi bấm một trong hai nút 90°.</dd>
+    </dl>
+  </details>
+  <form method="dialog"><button class="primary">Vào bàn</button></form>
+</dialog>
 <dialog id="restart"><h2>Bắt đầu ván mới?</h2><p>Ván hiện tại sẽ kết thúc.</p><form method="dialog"><button value="cancel">Tiếp tục ván</button> <button value="reset" class="primary">Ván mới</button></form></dialog>
 <script type="module" src="/src/game.mjs"></script>
 </body>
