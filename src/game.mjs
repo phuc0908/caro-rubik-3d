@@ -383,7 +383,7 @@ function canvasRenderer(){
       ctx.setTransform(pixelRatio,0,0,pixelRatio,0,0);
     },
     setAnimationLoop(draw){
-      function tick(){draw();requestAnimationFrame(tick);}
+      function tick(time){draw(time);requestAnimationFrame(tick);}
       requestAnimationFrame(tick);
     },
     render(){
