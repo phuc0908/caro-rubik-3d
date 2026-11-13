@@ -259,7 +259,7 @@ stage.addEventListener('pointerdown',event=>{
   stage.setPointerCapture(event.pointerId);
   drag={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false,
     startX:event.clientX,startY:event.clientY,
-    tile:!outcome&&settled()?pick(event):null,live:!preview};
+    tile:!outcome&&settled()?pick(event):null};
 });
 stage.addEventListener('pointermove',event=>{
   if(event.pointerType==='mouse' || event.pointerType==='pen') pointer={clientX:event.clientX,clientY:event.clientY};
@@ -267,7 +267,7 @@ stage.addEventListener('pointermove',event=>{
   if(drag.id!==event.pointerId) return;
   const dx=event.clientX-drag.startX,dy=event.clientY-drag.startY;
   if(!drag.moved && Math.hypot(dx,dy)<8) return;
-  if(!drag.moved && drag.tile!==null){
+  if(!drag.moved && drag.tile!==null && !preview){
     const tile=tiles[drag.tile];
     const center=new THREE.Vector3(...tile.p);
     const origin=center.clone().project(camera);
@@ -281,13 +281,11 @@ stage.addEventListener('pointermove',event=>{
     const motion=new THREE.Vector2(dx,dy);
     const horizontal=Math.abs(motion.dot(row))>=Math.abs(motion.dot(column));
     drag.axis=horizontal?row:column;
-    drag.sign=Math.sign(motion.dot(drag.axis));
-    setPreview(hoveredTurn(tile,horizontal,horizontal?drag.sign>0:drag.sign<0));
+    drag.choice=hoveredTurn(tile,horizontal,horizontal);
+    drag.travel=THREE.MathUtils.clamp(stage.clientHeight*.14,56,120);
+    drag.angle=0;
   }
-  if(drag.live && drag.axis && preview){
-    const progress=(dx*drag.axis.x+dy*drag.axis.y)*drag.sign;
-    drag.angle=preview.direction*Math.PI/2*THREE.MathUtils.clamp(progress/(stage.clientHeight*.14),0,1);
-  }
+  if(drag.choice) drag.angle=dragAngle(event,drag);
   drag.moved=true;
   if(drag.tile===null){
     const orbit=new THREE.Spherical().setFromVector3(targetEye);
@@ -297,18 +295,30 @@ stage.addEventListener('pointermove',event=>{
     drag.x=event.clientX;drag.y=event.clientY;hover=null;
   }
 });
+function dragAngle(event,gesture){
+  const dx=event.clientX-gesture.startX,dy=event.clientY-gesture.startY;
+  const progress=(dx*gesture.axis.x+dy*gesture.axis.y)/gesture.travel;
+  return gesture.choice.direction*THREE.MathUtils.clamp(progress,-1,1)*THREE.MathUtils.degToRad(80);
+}
 stage.addEventListener('pointerup',event=>{
   if(drag?.id!==event.pointerId) return;
-  if(!drag.moved && !outcome && settled()){
+  const gesture=drag;
+  drag=null;
+  if(gesture.choice){
+    const releasedAngle=dragAngle(event,gesture);
+    if(Math.abs(releasedAngle)>=THREE.MathUtils.degToRad(36)){
+      setPreview({...gesture.choice,direction:Math.sign(releasedAngle)});
+    }
+  }else if(!gesture.moved && !outcome && settled()){
     const index=pick(event);
     if(index!==null) place(index);
   }
-  drag=null;
 });
-stage.addEventListener('pointercancel',()=>{
-  if(drag?.live && drag.axis){clearPreview();update();}
-  drag=null;hover=null;
-});
+function cancelDrag(event){
+  if(drag?.id===event.pointerId){drag=null;hover=null;}
+}
+stage.addEventListener('pointercancel',cancelDrag);
+stage.addEventListener('lostpointercapture',cancelDrag);
 stage.addEventListener('pointerleave',()=>{pointer=null;hover=null;});
 
 let cameraDistance;
@@ -327,6 +337,7 @@ new ResizeObserver(resize).observe(stage);
 reset();resize();
 const rotation=new THREE.Quaternion();
 function settled(){
+  if(drag?.choice) return false;
   return preview
     ? renderedLayer===preview.layer && angle===preview.direction*Math.PI/2
     : angle===0;
@@ -352,10 +363,10 @@ function frame(time){
   camera.position.copy(viewDirection).multiplyScalar(cameraDistance);
   camera.lookAt(0,0,0);
   camera.updateMatrixWorld(true);
-  const desiredLayer=preview?.layer??null;
+  const desiredLayer=drag?.choice?.layer??preview?.layer??null;
   if(desiredLayer!==renderedLayer && angle===0) renderedLayer=desiredLayer;
-  const desiredAngle=preview && desiredLayer===renderedLayer
-    ? drag?.angle??preview.direction*Math.PI/2
+  const desiredAngle=desiredLayer===renderedLayer
+    ? drag?.angle??(preview?preview.direction*Math.PI/2:0)
     : 0;
   angle+=(desiredAngle-angle)*(reducedMotion?1:1-Math.exp(-delta*24));
   if(Math.abs(desiredAngle-angle)<.005) angle=desiredAngle;
