@@ -231,7 +231,7 @@ stage.addEventListener('pointerdown',event=>{
   stage.setPointerCapture(event.pointerId);
   drag={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false,
     startX:event.clientX,startY:event.clientY,
-    tile:!outcome&&settled()?pick(event):null};
+    tile:!outcome&&settled()?pick(event):null,live:!preview};
 });
 stage.addEventListener('pointermove',event=>{
   if(event.pointerType==='mouse' || event.pointerType==='pen') pointer={clientX:event.clientX,clientY:event.clientY};
@@ -245,14 +245,20 @@ stage.addEventListener('pointermove',event=>{
     const origin=center.clone().project(camera);
     const {width,height}=stage.getBoundingClientRect();
     // Compare the gesture to the projected row and column on the touched face.
-    const alignment=axis=>{
+    const screenAxis=axis=>{
       const end=center.clone().add(new THREE.Vector3(...axis)).project(camera);
-      const x=(end.x-origin.x)*width,y=(origin.y-end.y)*height;
-      return (dx*x+dy*y)/Math.hypot(x,y);
+      return new THREE.Vector2((end.x-origin.x)*width,(origin.y-end.y)*height).normalize();
     };
-    const row=alignment(tile.u),column=alignment(tile.v);
-    const horizontal=Math.abs(row)>=Math.abs(column);
-    setPreview(hoveredTurn(tile,horizontal,horizontal?row>0:column<0));
+    const row=screenAxis(tile.u),column=screenAxis(tile.v);
+    const motion=new THREE.Vector2(dx,dy);
+    const horizontal=Math.abs(motion.dot(row))>=Math.abs(motion.dot(column));
+    drag.axis=horizontal?row:column;
+    drag.sign=Math.sign(motion.dot(drag.axis));
+    setPreview(hoveredTurn(tile,horizontal,horizontal?drag.sign>0:drag.sign<0));
+  }
+  if(drag.live && drag.axis && preview){
+    const progress=(dx*drag.axis.x+dy*drag.axis.y)*drag.sign;
+    drag.angle=preview.direction*Math.PI/2*THREE.MathUtils.clamp(progress/(stage.clientHeight*.14),0,1);
   }
   drag.moved=true;
   if(drag.tile===null){
@@ -271,13 +277,22 @@ stage.addEventListener('pointerup',event=>{
   }
   drag=null;
 });
-stage.addEventListener('pointercancel',()=>{drag=null;hover=null;});
+stage.addEventListener('pointercancel',()=>{
+  if(drag?.live && drag.axis){clearPreview();update();}
+  drag=null;hover=null;
+});
 stage.addEventListener('pointerleave',()=>{pointer=null;hover=null;});
 
+let cameraDistance;
 function resize(){
   const {clientWidth:w,clientHeight:h}=stage;
   if(!w||!h) return;
   camera.aspect=w/h;camera.updateProjectionMatrix();
+  // A turn preserves each sticker's distance from the cube center.
+  const radius=Math.sqrt(3)*2.55;
+  const verticalHalfFov=THREE.MathUtils.degToRad(camera.fov/2);
+  const horizontalHalfFov=Math.atan(Math.tan(verticalHalfFov)*camera.aspect);
+  cameraDistance=radius/Math.sin(Math.min(verticalHalfFov,horizontalHalfFov)*.94);
   renderer.setSize(w,h,false);
 }
 new ResizeObserver(resize).observe(stage);
@@ -295,39 +310,28 @@ const permutations=layers.map(layer=>Object.fromEntries([-1,1].map(direction=>{
   origins.forEach((origin,destination)=>destinations[origin]=destination);
   return [direction,destinations];
 })));
-const fitCorners=[-2.55,2.55].flatMap(x=>[-2.55,2.55]
-  .flatMap(y=>[-2.55,2.55].map(z=>new THREE.Vector3(x,y,z))));
-const viewDirection=new THREE.Vector3(),right=new THREE.Vector3(),up=new THREE.Vector3();
-const tangent=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
+const viewDirection=new THREE.Vector3();
+const motionPreference=matchMedia('(prefers-reduced-motion: reduce)');
 let lastFrameTime;
 function frame(time){
   const delta=Math.min((time-(lastFrameTime??time))/1000,.05);
   lastFrameTime=time;
-  const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const ease=reducedMotion?1:.19;
+  const reducedMotion=motionPreference.matches;
+  const ease=reducedMotion?1:1-Math.exp(-delta*15);
   eye.lerp(targetEye,ease);
   if(eye.lengthSq()<.01) eye.copy(targetEye);
   viewDirection.copy(eye).normalize();
-  right.crossVectors(camera.up,viewDirection).normalize();
-  up.crossVectors(viewDirection,right);
-  let distance=0;
-  for(const point of fitCorners){
-    const extent=Math.max(Math.abs(point.dot(right))/camera.aspect,Math.abs(point.dot(up)));
-    distance=Math.max(distance,point.dot(viewDirection)+extent/(tangent*.91));
-  }
-  if(preview || renderedLayer!==null) distance+=Math.abs(Math.sin(angle*2))*1.7;
-  camera.position.copy(viewDirection).multiplyScalar(distance);
+  camera.position.copy(viewDirection).multiplyScalar(cameraDistance);
   camera.lookAt(0,0,0);
   camera.updateMatrixWorld(true);
   hover=pointer&&!drag&&settled()?pick(pointer):null;
   const desiredLayer=preview?.layer??null;
   if(desiredLayer!==renderedLayer && angle===0) renderedLayer=desiredLayer;
-  const desiredAngle=preview && desiredLayer===renderedLayer?preview.direction*Math.PI/2:0;
-  const remaining=desiredAngle-angle;
-  const maxStep=delta*Math.PI*2.8;
-  angle=reducedMotion||Math.abs(remaining)<=maxStep
-    ? desiredAngle
-    : angle+Math.sign(remaining)*maxStep;
+  const desiredAngle=preview && desiredLayer===renderedLayer
+    ? drag?.angle??preview.direction*Math.PI/2
+    : 0;
+  angle+=(desiredAngle-angle)*(reducedMotion?1:1-Math.exp(-delta*24));
+  if(Math.abs(desiredAngle-angle)<.005) angle=desiredAngle;
   if(renderedLayer!==null) rotation.setFromAxisAngle(axis.set(...faces[layers[renderedLayer].face][1]),angle);
   const destinations=preview?permutations[preview.layer][preview.direction]:tileIndices;
   const lines=outcome?.lines;
