@@ -2,6 +2,9 @@
 
 A local two-player Gomoku game built with Three.js. Connect five across cube faces and optionally twist one layer before placing a mark each turn.
 
+<img width="1911" height="904" alt="image" src="https://github.com/user-attachments/assets/f3668acb-2c19-4a1b-b0f0-9722c094548e" />
+
+
 ## Development
 
 Requires Node.js 20.19+ (20.x) or 22.12+.
