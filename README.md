@@ -24,4 +24,4 @@ Open the local URL printed by Vite. Use `npm run build` to generate `dist/` and 
 
 ## Controls
 
-Drag the cube to orbit. Hover over a tile and use the arrow keys to preview a row or column twist. Press Esc to cancel or click an empty tile to apply the twist and place your mark. Clicking an empty tile advances the turn.
+Drag the cube to orbit. Hover over a tile and use WASD or the arrow keys to preview a row or column twist. Press Esc to cancel or click an empty tile to apply the twist and place your mark. Clicking an empty tile advances the turn.
