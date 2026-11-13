@@ -135,9 +135,9 @@ function resultFor(current) {
 function update(){
   $('step').textContent='LƯỢT '+String(ply).padStart(2,'0');
   $('status').textContent=outcome?.title??'Lượt của '+player;
-  $('arenaStatus').textContent=outcome?.title??(preview?'Đang xem trước cú xoay · Esc để hủy':'Lượt '+player+' · Có thể xoay 1 lần');
+  $('arenaStatus').textContent=outcome?.title??(preview?'Đang xem trước · Esc để hủy và xoay lại':'Lượt '+player+' · Có thể xoay 1 lần');
   $('hint').textContent=outcome?'Bắt đầu ván mới để chơi lại.':preview
-    ? 'Chọn ô trống trên khối đã xoay để dùng quyền xoay và kết thúc lượt.'
+    ? 'Bấm ô trống để áp dụng cú xoay và đặt quân. Muốn kéo xoay lại, bấm Esc hoặc Hủy xoay.'
     : 'Chọn ô trống để đặt quân và kết thúc lượt.';
   $('twist').hidden=Boolean(outcome);
   $('ccw').disabled=$('cw').disabled=$('layer').value==='';
@@ -223,11 +223,13 @@ const twistKeys=new Map([
 ]);
 document.addEventListener('keydown',event=>{
   if(outcome || drag || event.altKey || event.ctrlKey || event.metaKey
-    || document.querySelector('dialog[open]') || event.target.closest?.('button, select, input, textarea')) return;
+    || document.querySelector('dialog[open]')) return;
   if(event.key==='Escape' && preview){
+    event.preventDefault();
     clearPreview();update();
     return;
   }
+  if(event.target.closest?.('button, select, input, textarea')) return;
   const command=twistKeys.get(event.key.toLowerCase());
   if(!command || !pointer) return;
   const [horizontal,forward]=command;
