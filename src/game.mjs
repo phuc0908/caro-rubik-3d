@@ -223,14 +223,32 @@ stage.addEventListener('pointerdown',event=>{
   if(event.pointerType!=='touch') pointer={clientX:event.clientX,clientY:event.clientY};
   stage.setPointerCapture(event.pointerId);
   drag={id:event.pointerId,x:event.clientX,y:event.clientY,moved:false,
-    startX:event.clientX,startY:event.clientY};
+    startX:event.clientX,startY:event.clientY,
+    tile:!outcome&&settled()?pick(event):null};
 });
 stage.addEventListener('pointermove',event=>{
   if(event.pointerType==='mouse' || event.pointerType==='pen') pointer={clientX:event.clientX,clientY:event.clientY};
   if(!drag) return;
   if(drag.id!==event.pointerId) return;
-  if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>5) drag.moved=true;
-  if(drag.moved){
+  const dx=event.clientX-drag.startX,dy=event.clientY-drag.startY;
+  if(!drag.moved && Math.hypot(dx,dy)<8) return;
+  if(!drag.moved && drag.tile!==null){
+    const tile=tiles[drag.tile];
+    const center=new THREE.Vector3(...tile.p);
+    const origin=center.clone().project(camera);
+    const {width,height}=stage.getBoundingClientRect();
+    // Compare the gesture to the projected row and column on the touched face.
+    const alignment=axis=>{
+      const end=center.clone().add(new THREE.Vector3(...axis)).project(camera);
+      const x=(end.x-origin.x)*width,y=(origin.y-end.y)*height;
+      return (dx*x+dy*y)/Math.hypot(x,y);
+    };
+    const row=alignment(tile.u),column=alignment(tile.v);
+    const horizontal=Math.abs(row)>=Math.abs(column);
+    setPreview(hoveredTurn(tile,horizontal,horizontal?row>0:column<0));
+  }
+  drag.moved=true;
+  if(drag.tile===null){
     const orbit=new THREE.Spherical().setFromVector3(targetEye);
     orbit.theta-=(event.clientX-drag.x)*.009;
     orbit.phi=THREE.MathUtils.clamp(orbit.phi-(event.clientY-drag.y)*.009,.045,Math.PI-.045);
